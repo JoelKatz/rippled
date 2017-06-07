@@ -462,6 +462,128 @@ bool SHAMap::getNodeFat (SHAMapNodeID wanted,
     return true;
 }
 
+std::shared_ptr<SHAMapAbstractNode> getNode (SHAMapHash const& hash, SHAMapNodeID const& id,
+    std::function<Blob(uint256 const&)> const& retriever, beast::Journal& journal)
+{
+    return SHAMapAbstractNode::make(makeSlice(retriever(hash.as_uint256())),
+        0, snfPREFIX, hash, true, journal, id);
+}
+
+bool SHAMap::getNodeFat (uint256 const& rootHash, SHAMapNodeID wanted,
+    std::function<Blob(uint256 const&)> retriever, beast::Journal& journal,
+    std::vector<SHAMapNodeID>& nodeIDs, std::vector<Blob>& rawNodes,
+    bool fatLeaves, std::uint32_t depth)
+{
+    // Gets a node and some of its children
+    // to a specified depth
+
+    SHAMapNodeID nodeID;
+    auto node = getNode(SHAMapHash(rootHash), nodeID, retriever, journal);
+    if (! node)
+    {
+        JLOG(journal.warn())
+            << "Unable to find root node for peer";
+        return false;
+    }
+
+    while (node && node->isInner () && (nodeID.getDepth() < wanted.getDepth()))
+    {
+        int branch = nodeID.selectBranch (wanted.getNodeID());
+        auto inner = static_cast<SHAMapInnerNode*>(node.get());
+        auto hash = inner->getChildHash (branch);
+        if (hash.isZero())
+        {
+            JLOG(journal.warn())
+                << "Unable to find node for peer";
+            return false;
+        }
+
+        node = getNode (hash, nodeID.getChildNodeID(branch), retriever, journal);
+        if (auto v2Node = dynamic_cast<SHAMapInnerNodeV2*>(node.get()))
+            nodeID = SHAMapNodeID{v2Node->depth(), v2Node->key()};
+        else
+            nodeID = nodeID.getChildNodeID (branch);
+    }
+
+    if (! node ||
+          (dynamic_cast<SHAMapInnerNodeV2*>(node.get()) != nullptr &&
+                !wanted.has_common_prefix(nodeID)) ||
+           (dynamic_cast<SHAMapInnerNodeV2*>(node.get()) == nullptr && wanted != nodeID))
+    {
+        JLOG(journal.warn())
+            << "peer requested node that is not in the map:\n"
+            << wanted << " but found\n" << nodeID;
+        return false;
+    }
+
+    if (node->isInner() &&
+        static_cast<SHAMapInnerNode*>(node.get())->isEmpty())
+    {
+        JLOG(journal.warn()) << "peer requests empty node";
+        return false;
+    }
+
+    std::stack<std::tuple <std::shared_ptr<SHAMapAbstractNode>, SHAMapNodeID, int>> stack;
+    stack.emplace (node, nodeID, depth);
+
+    while (! stack.empty ())
+    {
+        std::tie (node, nodeID, depth) = stack.top ();
+        stack.pop ();
+
+        // Add this node to the reply
+        Serializer s;
+        node->addRaw (s, snfWIRE);
+        nodeIDs.push_back (nodeID);
+        rawNodes.push_back (std::move (s.peekData()));
+
+        if (node->isInner())
+        {
+            // We descend inner nodes with only a single child
+            // without decrementing the depth
+            auto inner = static_cast<SHAMapInnerNode*>(node.get());
+            int bc = inner->getBranchCount();
+            if ((depth > 0) || (bc == 1))
+            {
+                // We need to process this node's children
+                for (int i = 0; i < 16; ++i)
+                {
+                    if (! inner->isEmptyBranch (i))
+                    {
+                        SHAMapNodeID childID = nodeID.getChildNodeID(i);
+                        auto childNode = getNode (inner->getChildHash(i), childID,
+                            retriever, journal);
+                        if (!childNode)
+                            return false;
+
+                        if (auto v2Node = dynamic_cast<SHAMapInnerNodeV2*>(childNode.get()))
+                            childID = SHAMapNodeID{v2Node->depth(), v2Node->key()};
+
+                        if (childNode->isInner () &&
+                            ((depth > 1) || (bc == 1)))
+                        {
+                            // If there's more than one child, reduce the depth
+                            // If only one child, follow the chain
+                            stack.emplace (childNode, childID,
+                                (bc > 1) ? (depth - 1) : depth);
+                        }
+                        else if (childNode->isInner() || fatLeaves)
+                        {
+                            // Just include this node
+                            Serializer ns;
+                            childNode->addRaw (ns, snfWIRE);
+                            nodeIDs.push_back (childID);
+                            rawNodes.push_back (std::move (ns.peekData ()));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
 bool SHAMap::getRootNode (Serializer& s, SHANodeFormat format) const
 {
     root_->addRaw (s, format);

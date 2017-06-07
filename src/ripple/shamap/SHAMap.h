@@ -210,6 +210,12 @@ public:
                                 SHAMapSyncFilter * filter);
 
 
+    static bool getNodeFat (uint256 const& rootHash, SHAMapNodeID node,
+        std::function<Blob(uint256 const&)> retriever, beast::Journal& journal,
+        std::vector<SHAMapNodeID>& nodeIDs, std::vector<Blob>& rawNode,
+                bool fatLeaves, std::uint32_t depth);
+
+
     // status functions
     void setImmutable ();
     bool isSynching () const;
