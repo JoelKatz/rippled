@@ -1653,6 +1653,34 @@ bool ApplicationImp::loadOldLedger (
         openLedger_.emplace(loadLedger, cachedSLEs_,
             logs_->journal("OpenLedger"));
 
+        // Dump all hashes associated with loadLedger
+        std::cout << "FULL HASH DUMP" << std::endl;
+        std::cout << loadLedger->info().hash << " Ledger Hash" << std::endl;
+
+        if (loadLedger->info().txHash.isNonZero())
+        {
+            std::cout << loadLedger->info().txHash << " Tx Hash" << std::endl;
+            loadLedger->txMap().visitNodes(
+                [](SHAMapAbstractNode& sman) -> bool
+                {
+                    std::cout << sman.getNodeHash().as_uint256() <<
+                        (sman.isLeaf() ? " TXN" : " TXN inner node") << std::endl;
+                    return false;
+                }
+            );
+        }
+
+        loadLedger->stateMap().visitNodes(
+            [](SHAMapAbstractNode& sman) -> bool
+            {
+                std::cout << sman.getNodeHash().as_uint256() <<
+                    (sman.isLeaf() ? " LedgerEntry" : " State inner node") << std::endl;
+                return false;
+            }
+        );
+        std::cout << "FULL HASH DUMP COMPLETE" << std::endl;
+
+
         if (replay)
         {
             // inject transaction(s) from the replayLedger into our open ledger
