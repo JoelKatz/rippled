@@ -60,6 +60,7 @@
 #include <rocksdb2/include/rocksdb/cache.h>
 #include <rocksdb2/include/rocksdb/compaction_filter.h>
 #include <rocksdb2/include/rocksdb/comparator.h>
+#include <rocksdb2/include/rocksdb/convenience.h>
 #include <rocksdb2/include/rocksdb/db.h>
 #include <rocksdb2/include/rocksdb/env.h>
 #include <rocksdb2/include/rocksdb/filter_policy.h>
