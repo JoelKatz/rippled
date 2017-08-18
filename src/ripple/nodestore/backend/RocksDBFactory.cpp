@@ -118,10 +118,15 @@ public:
         options.env = env;
 
         if (keyValues.exists ("cache_mb"))
-            table_options.block_cache = rocksdb::NewLRUCache (get<int>(keyValues, "cache_mb") * 1024L * 1024L);
+            table_options.block_cache = rocksdb::NewLRUCache (
+                get<int>(keyValues, "cache_mb") * 1024L * 1024L);
 
         if (auto const v = get<int>(keyValues, "filter_bits"))
-            table_options.filter_policy.reset (rocksdb::NewBloomFilterPolicy (v));
+        {
+            bool filter_blocks = ! keyValues.exists ("filter_full") ||
+                (get<int>(keyValues, "filter_full") == 0);
+            table_options.filter_policy.reset (rocksdb::NewBloomFilterPolicy (v, filter_blocks));
+        }
 
         if (get_if_exists (keyValues, "open_files", options.max_open_files))
             fdlimit_ = options.max_open_files;
@@ -131,6 +136,10 @@ public:
             options.target_file_size_base = 1024 * 1024 * get<int>(keyValues,"file_size_mb");
             options.max_bytes_for_level_base = 5 * options.target_file_size_base;
             options.write_buffer_size = 2 * options.target_file_size_base;
+            options.max_write_buffer_number = 6;
+            options.max_bytes_for_level_base = 8 * options.target_file_size_base;
+            options.min_write_buffer_number_to_merge = 2;
+            options.level0_file_num_compaction_trigger = 2;
         }
 
         get_if_exists (keyValues, "file_size_mult", options.target_file_size_multiplier);
@@ -169,7 +178,25 @@ public:
             options.write_buffer_size = 6 * options.target_file_size_base;
         }
 
+        if (keyValues.exists("bbt_options"))
+        {
+            auto s = rocksdb::GetBlockBasedTableOptionsFromString (table_options,
+                get<std::string>(keyValues, "bbt_options"), &table_options);
+            if (! s.ok())
+                Throw<std::runtime_error> (
+                    std::string("Unable to set RocksDB bbt_options: ") + s.ToString());
+        }
+
         options.table_factory.reset(NewBlockBasedTableFactory(table_options));
+
+        if (keyValues.exists("options"))
+        {
+            auto s = rocksdb::GetOptionsFromString (options,
+                get<std::string>(keyValues, "options"), &options);
+            if (! s.ok())
+                Throw<std::runtime_error> (
+                    std::string("Unable to set RocksDB options: ") + s.ToString());
+        }
 
         rocksdb::DB* db = nullptr;
         rocksdb::Status status = rocksdb::DB::Open (options, m_name, &db);
@@ -178,6 +205,12 @@ public:
                 std::string("Unable to open/create RocksDB: ") + status.ToString());
 
         m_db.reset (db);
+
+        std::string s1, s2;
+        rocksdb::GetStringFromDBOptions(&s1, options, "; ");
+        rocksdb::GetStringFromColumnFamilyOptions(&s2, options, "; ");
+        JLOG(m_journal.debug()) << "RocksDB DBOptions: " << s1;
+        JLOG(m_journal.debug()) << "RocksDB CFOptions: " << s2;
     }
 
     ~RocksDBBackend ()
