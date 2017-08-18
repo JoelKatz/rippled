@@ -18,10 +18,16 @@
 //==============================================================================
 
 #include <BeastConfig.h>
+#include <test/jtx.h>
+#include <ripple/beast/unit_test.h>
+
+#include <ripple/nodestore/Database.h>
 #include <test/nodestore/TestBase.h>
-#include <ripple/nodestore/DummyScheduler.h>
+#include <ripple/app/main/NodeStoreScheduler.h>
 #include <ripple/nodestore/Manager.h>
 #include <ripple/beast/utility/temp_dir.h>
+#include <ripple/core/JobQueue.h>
+#include <chrono>
 
 namespace ripple {
 namespace NodeStore {
@@ -29,172 +35,37 @@ namespace NodeStore {
 class Database_test : public TestBase
 {
 public:
-    void testImport (std::string const& destBackendType,
-        std::string const& srcBackendType, std::int64_t seedValue)
+    void run ()
     {
-        DummyScheduler scheduler;
-        RootStoppable parent ("TestRootStoppable");
-
-        beast::temp_dir node_db;
-        Section srcParams;
-        srcParams.set ("type", srcBackendType);
-        srcParams.set ("path", node_db.path());
-
-        // Create a batch
-        auto batch = createPredictableBatch (
-            numObjectsToTest, seedValue);
-
-        beast::Journal j;
-
-        // Write to source db
-        {
-            std::unique_ptr <Database> src = Manager::instance().make_Database (
-                "test", scheduler, 2, parent, srcParams, j);
-            storeBatch (*src, batch);
-        }
-
-        Batch copy;
-
-        {
-            // Re-open the db
-            std::unique_ptr <Database> src = Manager::instance().make_Database (
-                "test", scheduler, 2, parent, srcParams, j);
-
-            // Set up the destination database
-            beast::temp_dir dest_db;
-            Section destParams;
-            destParams.set ("type", destBackendType);
-            destParams.set ("path", dest_db.path());
-
-            std::unique_ptr <Database> dest = Manager::instance().make_Database (
-                "test", scheduler, 2, parent, destParams, j);
-
-            testcase ("import into '" + destBackendType +
-                "' from '" + srcBackendType + "'");
-
-            // Do the import
-            dest->import (*src);
-
-            // Get the results of the import
-            fetchCopyOfBatch (*dest, &copy, batch);
-        }
-
-        // Canonicalize the source and destination batches
-        std::sort (batch.begin (), batch.end (), LessThan{});
-        std::sort (copy.begin (), copy.end (), LessThan{});
-        BEAST_EXPECT(areBatchesEqual (batch, copy));
-    }
-
-    //--------------------------------------------------------------------------
-
-    void testNodeStore (std::string const& type,
-                        bool const testPersistence,
-                        std::int64_t const seedValue,
-                        int numObjectsToTest = 2000)
-    {
-        DummyScheduler scheduler;
-        RootStoppable parent ("TestRootStoppable");
-
-        std::string s = "NodeStore backend '" + type + "'";
-
-        testcase (s);
+        using namespace test::jtx;
+        Env env(*this);
+        RootStoppable parent("TestRootStoppable");
+        NodeStoreScheduler scheduler(parent);
+        scheduler.setJobQueue(env.app().getJobQueue());
 
         beast::temp_dir node_db;
         Section nodeParams;
-        nodeParams.set ("type", type);
-        nodeParams.set ("path", node_db.path());
+        nodeParams.set("path", node_db.path());
+        nodeParams.set("type", "rocksdb");
+        nodeParams.set("open_files", "2000");
+        nodeParams.set("filter_bits", "12");
+        nodeParams.set("cache_mb", "256");
+        nodeParams.set("file_size_mb", "8");
+        nodeParams.set("file_size_mult", "2");
 
-        beast::xor_shift_engine rng (seedValue);
-
-        // Create a batch
-        auto batch = createPredictableBatch (
-            numObjectsToTest, rng());
-
+        beast::xor_shift_engine rng(50);
         beast::Journal j;
-
-        {
-            // Open the database
-            std::unique_ptr <Database> db = Manager::instance().make_Database (
+        std::unique_ptr <Database> db =
+            Manager::instance().make_Database(
                 "test", scheduler, 2, parent, nodeParams, j);
 
-            // Write the batch
-            storeBatch (*db, batch);
-
-            {
-                // Read it back in
-                Batch copy;
-                fetchCopyOfBatch (*db, &copy, batch);
-                BEAST_EXPECT(areBatchesEqual (batch, copy));
-            }
-
-            {
-                // Reorder and read the copy again
-                std::shuffle (
-                    batch.begin(),
-                    batch.end(),
-                    rng);
-                Batch copy;
-                fetchCopyOfBatch (*db, &copy, batch);
-                BEAST_EXPECT(areBatchesEqual (batch, copy));
-            }
-        }
-
-        if (testPersistence)
+        for (auto i = 0; i < 1000000; ++i)
         {
-            {
-                // Re-open the database without the ephemeral DB
-                std::unique_ptr <Database> db = Manager::instance().make_Database (
-                    "test", scheduler, 2, parent, nodeParams, j);
-
-                // Read it back in
-                Batch copy;
-                fetchCopyOfBatch (*db, &copy, batch);
-
-                // Canonicalize the source and destination batches
-                std::sort (batch.begin (), batch.end (), LessThan{});
-                std::sort (copy.begin (), copy.end (), LessThan{});
-                BEAST_EXPECT(areBatchesEqual (batch, copy));
-            }
+            //while(db->getWriteLoad() >= 8000)
+            //    std::this_thread::sleep_for(1s);
+            auto batch = createPredictableBatch(2000, rng());
+            storeBatch(*db, batch);
         }
-    }
-
-    //--------------------------------------------------------------------------
-
-    void runBackendTests (std::int64_t const seedValue)
-    {
-        testNodeStore ("nudb", true, seedValue);
-
-    #if RIPPLE_ROCKSDB_AVAILABLE
-        testNodeStore ("rocksdb", true, seedValue);
-    #endif
-    }
-
-    //--------------------------------------------------------------------------
-
-    void runImportTests (std::int64_t const seedValue)
-    {
-        testImport ("nudb", "nudb", seedValue);
-
-    #if RIPPLE_ROCKSDB_AVAILABLE
-        testImport ("rocksdb", "rocksdb", seedValue);
-    #endif
-
-    #if RIPPLE_ENABLE_SQLITE_BACKEND_TESTS
-        testImport ("sqlite", "sqlite", seedValue);
-    #endif
-    }
-
-    //--------------------------------------------------------------------------
-
-    void run ()
-    {
-        std::int64_t const seedValue = 50;
-
-        testNodeStore ("memory", false, seedValue);
-
-        runBackendTests (seedValue);
-
-        runImportTests (seedValue);
     }
 };
 
