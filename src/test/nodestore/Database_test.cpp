@@ -61,8 +61,9 @@ public:
 
         for (auto i = 0; i < 1000000; ++i)
         {
-            //while(db->getWriteLoad() >= 8000)
-            //    std::this_thread::sleep_for(1s);
+            std::cerr << "Write_load: " << db->getWriteLoad() << std::endl;
+            while(db->getWriteLoad() >= 8000)
+                std::this_thread::sleep_for(10ms);
             auto batch = createPredictableBatch(2000, rng());
             storeBatch(*db, batch);
         }

@@ -131,16 +131,21 @@ public:
         if (get_if_exists (keyValues, "open_files", options.max_open_files))
             fdlimit_ = options.max_open_files;
 
-        if (keyValues.exists ("file_size_mb"))
-        {
-            options.target_file_size_base = 1024 * 1024 * get<int>(keyValues,"file_size_mb");
-            options.max_bytes_for_level_base = 5 * options.target_file_size_base;
-            options.write_buffer_size = 2 * options.target_file_size_base;
-            options.max_write_buffer_number = 6;
-            options.max_bytes_for_level_base = 8 * options.target_file_size_base;
-            options.min_write_buffer_number_to_merge = 2;
-            options.level0_file_num_compaction_trigger = 2;
-        }
+        // Set reasonable defaults for level-based compaction
+        options.max_write_buffer_number = 6;
+        options.min_write_buffer_number_to_merge = 2;
+        options.level0_file_num_compaction_trigger = 2;
+        options.level0_slowdown_writes_trigger = 3;
+        options.level0_stop_writes_trigger = 6;
+
+        options.target_file_size_base = 1024 * 1024 *
+            (keyValues.exists ("file_size_mb") ? get<int>(keyValues, "file_size_mb") : 16);
+
+        // Set reasonable defaults based on L0 file size
+        options.write_buffer_size = 2 * options.target_file_size_base;
+        options.max_bytes_for_level_base = 6 * options.target_file_size_base;
+        options.soft_pending_compaction_bytes_limit = 4 * options.target_file_size_base;
+        options.hard_pending_compaction_bytes_limit = 6 * options.target_file_size_base;
 
         get_if_exists (keyValues, "file_size_mult", options.target_file_size_multiplier);
 
