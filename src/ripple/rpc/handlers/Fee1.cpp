@@ -20,6 +20,7 @@
 #include <BeastConfig.h>
 #include <ripple/app/ledger/OpenLedger.h>
 #include <ripple/app/main/Application.h>
+#include <ripple/app/misc/FeeLevelTrack.h>
 #include <ripple/app/misc/TxQ.h>
 #include <ripple/rpc/Context.h>
 #include <ripple/protocol/ErrorCodes.h>
@@ -39,7 +40,11 @@ namespace ripple
 
         auto result = context.app.getTxQ().doRPC(context.app);
         if (result.type() == Json::objectValue)
+        {
+            result["stats"] = context.app.getFeeLevelTrack().getJson(
+                context.app.timeKeeper().closeTime());
             return result;
+        }
         assert(false);
         RPC::inject_error(rpcINTERNAL, context.params);
         return context.params;

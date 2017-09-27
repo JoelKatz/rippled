@@ -32,6 +32,7 @@
 #include <ripple/app/ledger/OrderBookDB.h>
 #include <ripple/app/ledger/TransactionMaster.h>
 #include <ripple/app/main/LoadManager.h>
+#include <ripple/app/misc/FeeLevelTrack.h>
 #include <ripple/app/misc/HashRouter.h>
 #include <ripple/app/misc/LoadFeeTrack.h>
 #include <ripple/app/misc/Transaction.h>
@@ -1013,6 +1014,9 @@ void NetworkOPsImp::apply (std::unique_lock<std::mutex>& batchLock)
 
     batchLock.unlock();
 
+    auto validatedLedger = m_ledgerMaster.getValidatedLedger();
+    auto closeTime = app_.timeKeeper().closeTime();
+
     {
         auto lock = make_lock(app_.getMasterMutex());
         bool changed = false;
@@ -1036,6 +1040,14 @@ void NetworkOPsImp::apply (std::unique_lock<std::mutex>& batchLock)
                     e.result = result.first;
                     e.applied = result.second;
                     changed = changed || result.second;
+                    if (validatedLedger && (isTesSuccess (e.result) || isTecClaim (e.result) ||
+                        (e.result == terQUEUED)))
+                    {
+                        app_.getFeeLevelTrack().trackTransaction (
+                            *(e.transaction->getSTransaction()),
+                            *validatedLedger,
+                            closeTime);
+                    }
                 }
                 return changed;
             });

@@ -26,6 +26,7 @@
 #include <ripple/app/tx/apply.h>
 #include <ripple/app/main/Application.h>
 #include <ripple/app/misc/AmendmentTable.h>
+#include <ripple/app/misc/FeeLevelTrack.h>
 #include <ripple/app/misc/HashRouter.h>
 #include <ripple/app/misc/LoadFeeTrack.h>
 #include <ripple/app/misc/NetworkOPs.h>
@@ -644,6 +645,7 @@ LedgerMaster::setFullLedger (
         {
             setPubLedger(ledger);
             app_.getOrderBookDB().setup(ledger);
+            app_.getFeeLevelTrack().clear();
         }
 
         if (ledger->info().seq != 0 && haveLedger (ledger->info().seq - 1))
@@ -772,6 +774,7 @@ LedgerMaster::checkAccept (
     {
         pendSaveValidated(app_, ledger, true, true);
         setPubLedger(ledger);
+        app_.getFeeLevelTrack().clear();
         app_.getOrderBookDB().setup(ledger);
     }
 
@@ -977,6 +980,7 @@ LedgerMaster::findNewLedgersToPublish ()
         auto valLedger = mValidLedger.get ();
         ret.push_back (valLedger);
         setPubLedger (valLedger);
+        app_.getFeeLevelTrack().clear();
         app_.getOrderBookDB().setup(valLedger);
 
         return { valLedger };
@@ -1695,6 +1699,9 @@ void LedgerMaster::doAdvance (ScopedLockType& sl)
                 }
 
                 setPubLedger(ledger);
+                app_.getFeeLevelTrack().validatedLedger(*ledger,
+                    app_.timeKeeper().closeTime());
+
 
                 {
                     ScopedUnlockType sul(m_mutex);

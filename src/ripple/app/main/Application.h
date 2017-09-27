@@ -65,6 +65,7 @@ class STLedgerEntry;
 class TimeKeeper;
 class TransactionMaster;
 class TxQ;
+class FeeLevelTrack;
 
 class ValidatorList;
 class ValidatorSite;
@@ -131,6 +132,7 @@ public:
     virtual LoadManager&            getLoadManager () = 0;
     virtual Overlay&                overlay () = 0;
     virtual TxQ&                    getTxQ() = 0;
+    virtual FeeLevelTrack&          getFeeLevelTrack() = 0;
     virtual ValidatorList&          validators () = 0;
     virtual ValidatorSite&          validatorSites () = 0;
     virtual ManifestCache&          validatorManifests () = 0;

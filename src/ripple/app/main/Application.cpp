@@ -32,10 +32,12 @@
 #include <ripple/app/ledger/PendingSaves.h>
 #include <ripple/app/ledger/InboundTransactions.h>
 #include <ripple/app/ledger/TransactionMaster.h>
+#include <ripple/app/misc/FeeLevelTrack.h>
 #include <ripple/app/main/LoadManager.h>
 #include <ripple/app/main/NodeIdentity.h>
 #include <ripple/app/main/NodeStoreScheduler.h>
 #include <ripple/app/misc/AmendmentTable.h>
+#include <ripple/app/misc/FeeLevelTrack.h>
 #include <ripple/app/misc/HashRouter.h>
 #include <ripple/app/misc/LoadFeeTrack.h>
 #include <ripple/app/misc/NetworkOPs.h>
@@ -336,6 +338,7 @@ public:
     RCLValidations mValidations;
     std::unique_ptr <LoadManager> m_loadManager;
     std::unique_ptr <TxQ> txQ_;
+    std::unique_ptr <FeeLevelTrack> feeLevelTrack_;
     ClosureCounter<void, boost::system::error_code const&> waitHandlerCounter_;
     boost::asio::steady_timer sweepTimer_;
     boost::asio::steady_timer entropyTimer_;
@@ -484,6 +487,8 @@ public:
         , m_loadManager (make_LoadManager (*this, *this, logs_->journal("LoadManager")))
 
         , txQ_(make_TxQ(setup_TxQ(*config_), logs_->journal("TxQ")))
+
+        , feeLevelTrack_(std::make_unique<FeeLevelTrack>())
 
         , sweepTimer_ (get_io_service())
 
@@ -752,6 +757,12 @@ public:
     {
         assert(txQ_.get() != nullptr);
         return *txQ_;
+    }
+
+    FeeLevelTrack& getFeeLevelTrack() override
+    {
+        assert(feeLevelTrack_.get() != nullptr);
+        return *feeLevelTrack_;
     }
 
     DatabaseCon& getTxnDB () override
