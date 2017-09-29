@@ -43,6 +43,8 @@ private:
         NetClock::time_point lastUpdate_ = NetClock::time_point {};
         int ledgersX256_ = 0;
         int secondsX256_ = 0;
+        int failX256_ = 0; // 0 = no failures, 256*100 = 100% failures
+        int countX256_ = 0; // how many transactions we're seeing
 
         FeeRange (std::uint64_t minFee, std::uint64_t maxFee) :
             minFee_ (minFee), maxFee_ (maxFee)
@@ -53,21 +55,79 @@ private:
             return ((lastUpdate_ + maxRangeValid_) > now);
         }
 
-        void add (NetClock::time_point now, int ledgers, int seconds)
+        bool shouldCount (int validLedgers_)
+        {
+             if (validLedgers_ == 0)
+                 return true;
+
+             if (validLedgers_ >= maxLedgerRange_)
+                 return true;
+
+             if (ledgersX256_ == 0)
+                 return false;
+
+             return ((validLedgers_ * 192) >= (ledgersX256_ + 128));
+        }
+
+        void addFail (NetClock::time_point now, int validLedgers)
+        {
+            if (now != lastUpdate_)
+            {
+                if (! valid (now))
+                {
+                    ledgersX256_ = 0;
+                    secondsX256_ = 0;
+                    failX256_ = 100 * 256;
+                    countX256_ = 0;
+                    lastUpdate_ = now;
+                    return;
+                }
+
+                while (lastUpdate_ < now)
+                {
+                    lastUpdate_ += 1s;
+                    countX256_ = countX256_ * 255 / 256;
+                }
+            }
+            if (shouldCount (validLedgers))
+            {
+                failX256_ = (failX256_ * 255 + 128) / 256 + 100;
+                countX256_ += 256;
+            }
+        }
+
+        void addSuccess (
+            NetClock::time_point now,
+            int ledgers, int seconds, int validLedgers_)
         {
             if (! valid (now))
             {
                 ledgersX256_ = ledgers * 256;
                 secondsX256_ = seconds * 256;
+                countX256_ = 0;
+                failX256_ = 0;
+
+                lastUpdate_ = now;
             }
             else
             {
+                while (lastUpdate_ < now)
+                {
+                    lastUpdate_ += 1s;
+                    countX256_ = countX256_ * 255 / 256;
+                }
+
                 ledgersX256_ =
-                    ledgersX256_ * 255 / 256 + ledgers;
+                    (ledgersX256_ * 255 + 128) / 256 + ledgers;
                 secondsX256_ =
-                    secondsX256_ * 255 / 256 + seconds;
+                    (secondsX256_ * 255 + 128) / 256 + seconds;
+
+                if (shouldCount (validLedgers_))
+                {
+                    countX256_ += 256;
+                    failX256_ = failX256_ * 255 / 256;
+                }
             }
-            lastUpdate_ = now;
         }
     };
 
@@ -79,14 +139,17 @@ private:
         std::uint64_t fee_;
         NetClock::time_point timeSeen_;
         LedgerIndex ledgerSeen_;
+        int validLedgers_;
 
         FTTx (
            std::uint64_t fee,
            NetClock::time_point timeSeen,
-           LedgerIndex ledgerSeen) :
+           LedgerIndex ledgerSeen,
+           int validLedgers) :
                fee_ (fee),
                timeSeen_ (timeSeen),
-               ledgerSeen_ (ledgerSeen)
+               ledgerSeen_ (ledgerSeen),
+               validLedgers_ (validLedgers)
         { ; }
     };
 
@@ -95,8 +158,7 @@ public:
     FeeLevelTrack ()
     {
         ranges_.emplace_back(10, 10);
-        ranges_.emplace_back(11, 15);
-        ranges_.emplace_back(16, 20);
+        ranges_.emplace_back(11, 19);
         ranges_.emplace_back(20, 49);
         ranges_.emplace_back(50, 99);
         ranges_.emplace_back(100, 199);
@@ -142,13 +204,22 @@ public:
 
         // Okay, transaction seems "pure".
 
+        int validLedgers = 0;
+        if (tx.isFieldPresent (sfLastLedgerSequence))
+        {
+            auto const lls = tx.getFieldU32 (sfLastLedgerSequence);
+            if (lls <= validatedLedger.seq())
+                return;
+            validLedgers = lls - validatedLedger.seq();
+        }
+
         {
             std::lock_guard <std::mutex> lock (mutex_);
 
             txns_.emplace (std::piecewise_construct,
                 std::forward_as_tuple (tx.getTransactionID()),
                 std::forward_as_tuple (tx.getFieldAmount(sfFee).xrp().drops(),
-                    now, validatedLedger.seq()));
+                    now, validatedLedger.seq(), validLedgers));
         }
     }
 
@@ -172,19 +243,14 @@ public:
                 if ((seq >= tx.ledgerSeen_) &&
                     (now >= tx.timeSeen_))
                 {
-                    for (auto &range : ranges_)
-                    { // FIXME: Should use binary search
-                        if ((tx.fee_ >= range.minFee_) &&
-                            (tx.fee_ <= range.maxFee_))
-                        {
-                            range.add (now,
-                                seq - tx.ledgerSeen_,
-                                std::chrono::duration_cast
-                                    <std::chrono::seconds>
-                                        (now - tx.timeSeen_).count());
-                            break;
-                        }
-                    }
+                    auto range = findFeeRange (tx.fee_);
+                    if (range)
+                        range->addSuccess (now,
+                            seq - tx.ledgerSeen_,
+                            std::chrono::duration_cast
+                                <std::chrono::seconds>
+                                    (now - tx.timeSeen_).count(),
+                                        tx.validLedgers_);
                 }
                 txns_.erase (txnEntry);
             }
@@ -194,7 +260,12 @@ public:
         while (it != txns_.end())
         {
             if (it->second.ledgerSeen_ < expireSeq)
+            {
+                auto range = findFeeRange (it->second.fee_);
+                if (range)
+                    range->addFail (now, it->second.validLedgers_);
                 it = txns_.erase (it);
+            }
             else
                 ++it;
         }
@@ -222,6 +293,10 @@ public:
                     v["FeeMax"] = static_cast<int> (band.maxFee_);
                     v["Ledgers"] = static_cast<int> ((band.ledgersX256_ + 128) / 256);
                     v["Seconds"] = static_cast<int> ((band.secondsX256_ + 128) / 256);
+                    if (band.countX256_ > 0)
+                        v["Count"] = static_cast<int> ((band.countX256_ + 128) / 256);
+                    if (band.failX256_ > 0)
+                        v["Fail"] = (band.failX256_ + 128) / 256;
                     ret.append (std::move (v));
                 }
             }
@@ -235,6 +310,17 @@ private:
 
     hash_map <uint256, FTTx> txns_;
     std::vector<FeeRange> ranges_;
+
+    FeeRange* findFeeRange (std::uint64_t fee)
+    {
+        for (auto &range : ranges_)
+        {
+            // FIXME: Should use binary search
+            if ((fee >= range.minFee_) && (fee <= range.maxFee_))
+                return &range;
+        }
+        return nullptr;
+    }
 };
 
 
