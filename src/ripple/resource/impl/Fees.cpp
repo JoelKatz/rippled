@@ -36,8 +36,8 @@ Charge const feeMediumBurdenRPC   (  400, "medium RPC"             );
 Charge const feeHighBurdenRPC     ( 3000, "heavy RPC"              );
 
 Charge const feeLightPeer         (    1, "trivial peer request"   );
-Charge const feeMediumBurdenPeer  (  500, "moderate peer request"  );
-Charge const feeHighBurdenPeer    ( 2500, "heavy peer request"     );
+Charge const feeMediumBurdenPeer  (  250, "moderate peer request"  );
+Charge const feeHighBurdenPeer    ( 2000, "heavy peer request"     );
 
 Charge const feeWarning           ( 2000, "received warning"       );
 Charge const feeDrop              ( 3000, "dropped"                );
