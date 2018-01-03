@@ -617,6 +617,9 @@ def config_env(toolchain, variant, env):
         ]
         env.Append(LIBS=['dl'])
 
+        env.Append(LIBS=['profiler'])
+        env.Append(LIBPATH=['/usr/local/lib'])
+
         if should_link_static():
             add_static_libs(env, boost_libs)
         else:

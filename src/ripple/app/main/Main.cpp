@@ -17,6 +17,8 @@
 */
 //==============================================================================
 
+#include "/usr/local/include/gperftools/profiler.h"
+
 #include <BeastConfig.h>
 #include <ripple/basics/Log.h>
 #include <ripple/protocol/digest.h>
@@ -467,8 +469,16 @@ int run (int argc, char** argv)
         // Start the server
         app->doStart(true /*start timers*/);
 
+        {
+            char buf[512];
+            sprintf(buf, "rippled.%d.prof", (int) time(NULL));
+            ProfilerStart(buf);
+        }
+
         // Block until we get a stop RPC.
         app->run();
+
+        ProfilerStop();
 
         // Try to write out some entropy to use the next time we start.
         auto entropy = getEntropyFile (app->config());
