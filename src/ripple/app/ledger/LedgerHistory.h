@@ -73,9 +73,14 @@ public:
 
     /** Remove stale cache entries
     */
-    void sweep ()
+    void sweep (LedgerIndex currentIndex)
     {
-        m_ledgers_by_hash.sweep ();
+        m_ledgers_by_hash.sweep (
+            [currentIndex](Ledger const& l, bool)
+            {
+                if ((l.info().seq + 4) < currentIndex)
+                    l.unPin();
+            });
         m_consensus_validated.sweep ();
     }
 

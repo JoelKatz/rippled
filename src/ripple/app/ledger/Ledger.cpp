@@ -1072,6 +1072,13 @@ Ledger::unshare() const
 }
 
 void
+Ledger::unPin() const
+{
+    stateMap_->unPin();
+    txMap_->unPin();
+}
+
+void
 Ledger::invariants() const
 {
     stateMap_->invariants();

@@ -1467,7 +1467,7 @@ LedgerMaster::tune (int size, int age)
 void
 LedgerMaster::sweep ()
 {
-    mLedgerHistory.sweep ();
+    mLedgerHistory.sweep (mValidLedgerSeq);
     fetch_packs_.sweep ();
 }
 

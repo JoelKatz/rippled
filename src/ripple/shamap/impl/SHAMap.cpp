@@ -1147,6 +1147,22 @@ int SHAMap::unshare ()
     return walkSubTree (false, hotUNKNOWN, 0);
 }
 
+void SHAMap::unPin ()
+{
+    // Release strong pointers between nodes
+    std::stack<std::shared_ptr<SHAMapInnerNode>> stack;
+
+    if (backed_ && root_ && root_->isInner())
+        std::dynamic_pointer_cast<SHAMapInnerNode>(root_)->unPin (stack);
+
+    while (! stack.empty())
+    {
+        auto p = std::move(stack.top());
+        stack.pop();
+        p->unPin (stack);
+    }
+}
+
 /** Convert all modified nodes to shared nodes */
 // If requested, write them to the node store
 int SHAMap::flushDirty (NodeObjectType t, std::uint32_t seq)

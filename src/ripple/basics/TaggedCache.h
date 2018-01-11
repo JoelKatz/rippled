@@ -162,7 +162,7 @@ public:
         m_misses = 0;
     }
 
-    void sweep ()
+    void sweep (std::function< void(T&, bool) > func = {})
     {
         int cacheRemovals = 0;
         int mapRemovals = 0;
@@ -208,6 +208,7 @@ public:
                 if (cit->second.isWeak ())
                 {
                     // weak
+
                     if (cit->second.isExpired ())
                     {
                         ++mapRemovals;
@@ -215,32 +216,45 @@ public:
                     }
                     else
                     {
-                        ++cit;
-                    }
-                }
-                else if (cit->second.last_access <= when_expire)
-                {
-                    // strong, expired
-                    --m_cache_count;
-                    ++cacheRemovals;
-                    if (cit->second.ptr.unique ())
-                    {
-                        stuffToSweep.push_back (cit->second.ptr);
-                        ++mapRemovals;
-                        cit = m_cache.erase (cit);
-                    }
-                    else
-                    {
-                        // remains weakly cached
-                        cit->second.ptr.reset ();
+                        if (func)
+                        {
+                            auto j = cit->second.lock();
+                            if (j)
+                                func (*j, true);
+                        }
+
                         ++cit;
                     }
                 }
                 else
                 {
-                    // strong, not expired
-                    ++cc;
-                    ++cit;
+                    if (func)
+                        func (*(cit->second.ptr), false);
+
+                    if (cit->second.last_access <= when_expire)
+                    {
+                        // strong, expired
+                        --m_cache_count;
+                        ++cacheRemovals;
+                        if (cit->second.ptr.unique ())
+                        {
+                            stuffToSweep.push_back (cit->second.ptr);
+                            ++mapRemovals;
+                            cit = m_cache.erase (cit);
+                        }
+                        else
+                        {
+                            // remains weakly cached
+                            cit->second.ptr.reset ();
+                            ++cit;
+                        }
+                    }
+                    else
+                    {
+                        // strong, not expired
+                        ++cc;
+                        ++cit;
+                    }
                 }
             }
         }

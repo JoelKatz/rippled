@@ -168,6 +168,7 @@ public:
     std::shared_ptr<SHAMapAbstractNode> getChild (int branch);
     virtual std::shared_ptr<SHAMapAbstractNode>
         canonicalizeChild (int branch, std::shared_ptr<SHAMapAbstractNode> node);
+    void unPin (std::stack<std::shared_ptr<SHAMapInnerNode>>& stack);
 
     // sync functions
     bool isFullBelow (std::uint32_t generation) const;
