@@ -38,7 +38,7 @@ SHAMapAbstractNode::~SHAMapAbstractNode() = default;
 std::shared_ptr<SHAMapAbstractNode>
 SHAMapInnerNode::clone(std::uint32_t seq) const
 {
-    auto p = std::make_shared<SHAMapInnerNode>(seq);
+    auto p = std::make_shared<SHAMapInnerNode>(seq, mChildren->isStrong());
     p->mHash = mHash;
     p->mIsBranch = mIsBranch;
     p->mFullBelowGen = mFullBelowGen;
@@ -46,8 +46,8 @@ SHAMapInnerNode::clone(std::uint32_t seq) const
     std::lock_guard <std::mutex> lock(childLock);
     for (int i = 0; i < 16; ++i)
     {
-        p->mChildren[i] = mChildren[i];
-        assert(std::dynamic_pointer_cast<SHAMapInnerNodeV2>(p->mChildren[i]) == nullptr);
+        p->mChildren->setChild(i, mChildren->getChild(i));
+        assert(std::dynamic_pointer_cast<SHAMapInnerNodeV2>(p->mChildren->getNode(i)) == nullptr);
     }
     return std::move(p);
 }
@@ -55,7 +55,7 @@ SHAMapInnerNode::clone(std::uint32_t seq) const
 std::shared_ptr<SHAMapAbstractNode>
 SHAMapInnerNodeV2::clone(std::uint32_t seq) const
 {
-    auto p = std::make_shared<SHAMapInnerNodeV2>(seq);
+    auto p = std::make_shared<SHAMapInnerNodeV2>(seq, mChildren->isStrong());
     p->mHash = mHash;
     p->mIsBranch = mIsBranch;
     p->mFullBelowGen = mFullBelowGen;
@@ -65,10 +65,10 @@ SHAMapInnerNodeV2::clone(std::uint32_t seq) const
     std::lock_guard <std::mutex> lock(childLock);
     for (int i = 0; i < 16; ++i)
     {
-        p->mChildren[i] = mChildren[i];
-        if (p->mChildren[i] != nullptr)
-            assert(std::dynamic_pointer_cast<SHAMapInnerNodeV2>(p->mChildren[i]) != nullptr ||
-                   std::dynamic_pointer_cast<SHAMapTreeNode>(p->mChildren[i]) != nullptr);
+        p->mChildren->setChild(i, mChildren->getChild(i));
+        if (p->mChildren->getChild(i) != nullptr)
+            assert(std::dynamic_pointer_cast<SHAMapInnerNodeV2>(p->mChildren->getChild(i)) != nullptr ||
+                   std::dynamic_pointer_cast<SHAMapTreeNode>(p->mChildren->getChild(i)]) != nullptr);
     }
     return std::move(p);
 }
@@ -98,8 +98,8 @@ SHAMapTreeNode::SHAMapTreeNode (std::shared_ptr<SHAMapItem const> const& item,
 
 std::shared_ptr<SHAMapAbstractNode>
 SHAMapAbstractNode::make(Slice const& rawNode, std::uint32_t seq, SHANodeFormat format,
-                         SHAMapHash const& hash, bool hashValid, beast::Journal j,
-                         SHAMapNodeID const& id)
+                         SHAMapHash const& hash, bool hashValid, bool isBacked,
+                         beast::Journal j, SHAMapNodeID const& id)
 {
     if (format == snfWIRE)
     {
@@ -146,7 +146,7 @@ SHAMapAbstractNode::make(Slice const& rawNode, std::uint32_t seq, SHANodeFormat 
             if (len != 512)
                 Throw<std::runtime_error> ("invalid FI node");
 
-            auto ret = std::make_shared<SHAMapInnerNode>(seq);
+            auto ret = std::make_shared<SHAMapInnerNode>(seq, ! isBacked);
             for (int i = 0; i < 16; ++i)
             {
                 s.get256 (ret->mHashes[i].as_uint256(), i * 32);
@@ -162,7 +162,7 @@ SHAMapAbstractNode::make(Slice const& rawNode, std::uint32_t seq, SHANodeFormat 
         }
         else if (type == 3)
         {
-            auto ret = std::make_shared<SHAMapInnerNode>(seq);
+            auto ret = std::make_shared<SHAMapInnerNode>(seq, ! isBacked);
             // compressed inner
             for (int i = 0; i < (len / 33); ++i)
             {
@@ -205,7 +205,7 @@ SHAMapAbstractNode::make(Slice const& rawNode, std::uint32_t seq, SHANodeFormat 
             if (len != 512)
                 Throw<std::runtime_error> ("invalid FI node");
 
-            auto ret = std::make_shared<SHAMapInnerNodeV2>(seq);
+            auto ret = std::make_shared<SHAMapInnerNodeV2>(seq, ! isBacked);
             for (int i = 0; i < 16; ++i)
             {
                 s.get256 (ret->mHashes[i].as_uint256(), i * 32);
@@ -222,7 +222,7 @@ SHAMapAbstractNode::make(Slice const& rawNode, std::uint32_t seq, SHANodeFormat 
         }
         else if (type == 6)
         {
-            auto ret = std::make_shared<SHAMapInnerNodeV2>(seq);
+            auto ret = std::make_shared<SHAMapInnerNodeV2>(seq, ! isBacked);
             // compressed v2 inner
             for (int i = 0; i < (len / 33); ++i)
             {
@@ -300,9 +300,9 @@ SHAMapAbstractNode::make(Slice const& rawNode, std::uint32_t seq, SHANodeFormat 
 
             std::shared_ptr<SHAMapInnerNode> ret;
             if (isV2)
-                ret = std::make_shared<SHAMapInnerNodeV2>(seq);
+                ret = std::make_shared<SHAMapInnerNodeV2>(seq, ! isBacked);
             else
-                ret = std::make_shared<SHAMapInnerNode>(seq);
+                ret = std::make_shared<SHAMapInnerNode>(seq, ! isBacked);
 
             for (int i = 0; i < 16; ++i)
             {
@@ -383,8 +383,9 @@ SHAMapInnerNode::updateHashDeep()
 {
     for (auto pos = 0; pos < 16; ++pos)
     {
-        if (mChildren[pos] != nullptr)
-            mHashes[pos] = mChildren[pos]->getNodeHash();
+        auto n = mChildren->getChild (pos);
+        if (n != nullptr)
+            mHashes[pos] = n->getNodeHash();
     }
     updateHash();
 }
@@ -664,7 +665,7 @@ SHAMapInnerNode::setChild(int m, std::shared_ptr<SHAMapAbstractNode> const& chil
         mIsBranch |= (1 << m);
     else
         mIsBranch &= ~ (1 << m);
-    mChildren[m] = child;
+    mChildren->setChild (m, child);
 }
 
 // finished modifying, now make shareable
@@ -676,17 +677,7 @@ void SHAMapInnerNode::shareChild (int m, std::shared_ptr<SHAMapAbstractNode> con
     assert (child);
     assert (child.get() != this);
 
-    mChildren[m] = child;
-}
-
-SHAMapAbstractNode*
-SHAMapInnerNode::getChildPointer (int branch)
-{
-    assert (branch >= 0 && branch < 16);
-    assert (isInner());
-
-    std::lock_guard <std::mutex> lock (childLock);
-    return mChildren[branch].get ();
+    mChildren->setChild (m, child);
 }
 
 std::shared_ptr<SHAMapAbstractNode>
@@ -696,7 +687,13 @@ SHAMapInnerNode::getChild (int branch)
     assert (isInner());
 
     std::lock_guard <std::mutex> lock (childLock);
-    return mChildren[branch];
+    return mChildren->getChild (branch);
+}
+
+SHAMapAbstractNode*
+SHAMapInnerNode::getChildPointer (int branch)
+{
+    return mChildren->getChild(branch).get ();
 }
 
 std::shared_ptr<SHAMapAbstractNode>
@@ -708,18 +705,52 @@ SHAMapInnerNode::canonicalizeChild(int branch, std::shared_ptr<SHAMapAbstractNod
     assert (node->getNodeHash() == mHashes[branch]);
 
     std::lock_guard <std::mutex> lock (childLock);
-    if (mChildren[branch])
+    mChildren->canonicalizeChild (branch, node);
+    return node;
+}
+
+void
+SHAMapStrongChildren::setChild(int m, std::shared_ptr<SHAMapAbstractNode> const& child)
+{
+    mChildren[m] = child;
+}
+
+std::shared_ptr<SHAMapAbstractNode>
+SHAMapStrongChildren::getChild (int branch)
+{
+    return mChildren[branch];
+}
+
+std::shared_ptr<SHAMapAbstractNode>
+SHAMapStrongChildren::canonicalizeChild(int branch, std::shared_ptr<SHAMapAbstractNode> node)
+{
+    if (! mChildren[branch])
     {
-        // There is already a node hooked up, return it
-        node = mChildren[branch];
-    }
-    else
-    {
-        // Hook this node up
-        // node must not be a v2 inner node
         assert(std::dynamic_pointer_cast<SHAMapInnerNodeV2>(node) == nullptr);
         mChildren[branch] = node;
     }
+    return mChildren[branch];
+}
+
+void
+SHAMapWeakChildren::setChild(int m, std::shared_ptr<SHAMapAbstractNode> const& child)
+{
+    mChildren[m] = child;
+}
+
+std::shared_ptr<SHAMapAbstractNode>
+SHAMapWeakChildren::getChild (int branch)
+{
+    return mChildren[branch].lock();
+}
+
+std::shared_ptr<SHAMapAbstractNode>
+SHAMapWeakChildren::canonicalizeChild(int branch, std::shared_ptr<SHAMapAbstractNode> node)
+{
+    if (auto l = mChildren[branch].lock())
+        return l;
+
+    mChildren[branch] = node;
     return node;
 }
 
@@ -732,19 +763,7 @@ SHAMapInnerNodeV2::canonicalizeChild(int branch, std::shared_ptr<SHAMapAbstractN
     assert (node->getNodeHash() == mHashes[branch]);
 
     std::lock_guard <std::mutex> lock (childLock);
-    if (mChildren[branch])
-    {
-        // There is already a node hooked up, return it
-        node = mChildren[branch];
-    }
-    else
-    {
-        // Hook this node up
-        // node must not be a v1 inner node
-        assert(std::dynamic_pointer_cast<SHAMapInnerNodeV2>(node) != nullptr ||
-               std::dynamic_pointer_cast<SHAMapTreeNode>(node)    != nullptr);
-        mChildren[branch] = node;
-    }
+    mChildren->canonicalizeChild (branch, node);
     return node;
 }
 
@@ -815,9 +834,9 @@ SHAMapInnerNodeV2::setChildren(std::shared_ptr<SHAMapTreeNode> const& child1,
         b2 = *k2 >> 4;
         depth_ = 2*depth_;
     }
-    mChildren[b1] = child1;
+    mChildren->setChild(b1, child1);
     mIsBranch |= 1 << b1;
-    mChildren[b2] = child2;
+    mChildren->setChild(b2, child2);
     mIsBranch |= 1 << b2;
 }
 
@@ -859,8 +878,8 @@ SHAMapInnerNode::invariants(bool is_v2, bool is_root) const
         if (mHashes[i].isNonZero())
         {
             assert((mIsBranch & (1 << i)) != 0);
-            if (mChildren[i] != nullptr)
-                mChildren[i]->invariants(is_v2);
+            if (mChildren->getChild(i) != nullptr)
+                mChildren->getChild(i)->invariants(is_v2);
             ++count;
         }
         else
@@ -887,18 +906,19 @@ SHAMapInnerNodeV2::invariants(bool is_v2, bool is_root) const
         if (mHashes[i].isNonZero())
         {
             assert((mIsBranch & (1 << i)) != 0);
-            if (mChildren[i] != nullptr)
+            auto c = mChildren->getChild(i);
+            if (c != nullptr)
             {
-                assert(mHashes[i] == mChildren[i]->getNodeHash());
+                assert(mHashes[i] == c->getNodeHash());
 #ifndef NDEBUG
-                auto const& childID = mChildren[i]->key();
+                auto const& childID = c->key();
 
                 // Make sure this child it attached to the correct branch
                 SHAMapNodeID nodeID {depth(), common()};
                 assert (i == nodeID.selectBranch(childID));
 #endif
                 assert(has_common_prefix(childID));
-                mChildren[i]->invariants(is_v2);
+                c->invariants(is_v2);
             }
             ++count;
         }

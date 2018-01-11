@@ -32,10 +32,11 @@ SHAMap::SHAMap (
     , state_ (SHAMapState::Modifying)
     , type_ (t)
 {
+    // no harm in always keeping strong pointers in the root node
     if (v == version{2})
-        root_ = std::make_shared<SHAMapInnerNodeV2>(seq_, 0);
+        root_ = std::make_shared<SHAMapInnerNodeV2>(seq_, 0, true);
     else
-        root_ = std::make_shared<SHAMapInnerNode>(seq_);
+        root_ = std::make_shared<SHAMapInnerNode>(seq_, true);
 }
 
 SHAMap::SHAMap (
@@ -49,10 +50,11 @@ SHAMap::SHAMap (
     , state_ (SHAMapState::Synching)
     , type_ (t)
 {
+    // no harm in always keeping strong pointers in the root node
     if (v == version{2})
-        root_ = std::make_shared<SHAMapInnerNodeV2>(seq_, 0);
+        root_ = std::make_shared<SHAMapInnerNodeV2>(seq_, 0, true);
     else
-        root_ = std::make_shared<SHAMapInnerNode>(seq_);
+        root_ = std::make_shared<SHAMapInnerNode>(seq_, true);
 }
 
 SHAMap::~SHAMap ()
@@ -252,7 +254,7 @@ SHAMap::fetchNodeFromDB (SHAMapHash const& hash) const
             try
             {
                 node = SHAMapAbstractNode::make(makeSlice(obj->getData()),
-                    0, snfPREFIX, hash, true, f_.journal());
+                    0, snfPREFIX, hash, true, backed_, f_.journal());
                 if (node && node->isInner())
                 {
                     bool isv2 = std::dynamic_pointer_cast<SHAMapInnerNodeV2>(node) != nullptr;
@@ -302,7 +304,7 @@ SHAMap::checkFilter(SHAMapHash const& hash,
     if (auto nodeData = filter->getNode (hash))
     {
         node = SHAMapAbstractNode::make(
-            makeSlice(*nodeData), 0, snfPREFIX, hash, true, f_.journal ());
+            makeSlice(*nodeData), 0, snfPREFIX, hash, true, backed_, f_.journal ());
         if (node)
         {
             filter->gotNode (true, hash, ledgerSeq_,
@@ -490,7 +492,7 @@ SHAMap::descendAsync (SHAMapInnerNode* parent, int branch,
                 return nullptr;
 
             ptr = SHAMapAbstractNode::make(makeSlice(obj->getData()), 0, snfPREFIX,
-                                           hash, true, f_.journal());
+                                           hash, true, backed_, f_.journal());
             if (ptr && backed_)
                 canonicalize (hash, ptr);
         }
@@ -924,7 +926,7 @@ SHAMap::addGiveItem (std::shared_ptr<SHAMapItem const> const& item,
                 stack.top().first = parent;
                 auto parent_depth = parent->depth();
                 auto depth = inner->get_common_prefix(tag);
-                auto new_inner = std::make_shared<SHAMapInnerNodeV2>(seq_);
+                auto new_inner = std::make_shared<SHAMapInnerNodeV2>(seq_, true);
                 nodeID = SHAMapNodeID{depth, prefix(depth, inner->common())};
                 new_inner->setChild(nodeID.selectBranch(inner->common()), inner);
                 nodeID = SHAMapNodeID{depth, prefix(depth, tag)};
@@ -939,7 +941,7 @@ SHAMap::addGiveItem (std::shared_ptr<SHAMapItem const> const& item,
         else
         {
             auto leaf = std::static_pointer_cast<SHAMapTreeNode>(node);
-            auto inner = std::make_shared<SHAMapInnerNodeV2>(seq_);
+            auto inner = std::make_shared<SHAMapInnerNodeV2>(seq_, true);
             inner->setChildren(leaf, std::make_shared<SHAMapTreeNode>(item, type, seq_));
             assert(!stack.empty());
             auto parent = unshareNode(
@@ -967,7 +969,7 @@ SHAMap::addGiveItem (std::shared_ptr<SHAMapItem const> const& item,
             std::shared_ptr<SHAMapItem const> otherItem = leaf->peekItem ();
             assert (otherItem && (tag != otherItem->key()));
 
-            node = std::make_shared<SHAMapInnerNode>(node->getSeq());
+            node = std::make_shared<SHAMapInnerNode>(node->getSeq(), true);
 
             int b1, b2;
 
@@ -978,7 +980,7 @@ SHAMap::addGiveItem (std::shared_ptr<SHAMapItem const> const& item,
 
                 // we need a new inner node, since both go on same branch at this level
                 nodeID = nodeID.getChildNodeID (b1);
-                node = std::make_shared<SHAMapInnerNode> (seq_);
+                node = std::make_shared<SHAMapInnerNode> (seq_, true);
             }
 
             // we can add the two leaf nodes here
@@ -1179,9 +1181,9 @@ SHAMap::walkSubTree (bool doWrite, NodeObjectType t, std::uint32_t seq)
     if (node->isEmpty ())
     { // replace empty root with a new empty root
         if (is_v2())
-            root_ = std::make_shared<SHAMapInnerNodeV2>(0, 0);
+            root_ = std::make_shared<SHAMapInnerNodeV2>(0, 0, true);
         else
-            root_ = std::make_shared<SHAMapInnerNode>(0);
+            root_ = std::make_shared<SHAMapInnerNode>(0, true);
         return 1;
     }
 

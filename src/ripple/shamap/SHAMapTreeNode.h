@@ -133,23 +133,26 @@ public:
 
     static std::shared_ptr<SHAMapAbstractNode>
         make(Slice const& rawNode, std::uint32_t seq, SHANodeFormat format,
-             SHAMapHash const& hash, bool hashValid, beast::Journal j,
-             SHAMapNodeID const& id = SHAMapNodeID{});
+             SHAMapHash const& hash, bool hashValid, bool isBacked,
+             beast::Journal j, SHAMapNodeID const& id = SHAMapNodeID{});
 };
 
 class SHAMapInnerNodeV2;
 
+class SHAMapChildren;
+
 class SHAMapInnerNode
     : public SHAMapAbstractNode
 {
-    std::array<SHAMapHash, 16>          mHashes;
-    std::shared_ptr<SHAMapAbstractNode> mChildren[16];
-    int                             mIsBranch = 0;
-    std::uint32_t                   mFullBelowGen = 0;
+    std::array <SHAMapHash, 16>         mHashes;
+    std::unique_ptr <SHAMapChildren>    mChildren;
+    int                                 mIsBranch = 0;
+    std::uint32_t                       mFullBelowGen = 0;
 
-    static std::mutex               childLock;
+    static std::mutex                   childLock;
+
 public:
-    SHAMapInnerNode(std::uint32_t seq);
+    SHAMapInnerNode(std::uint32_t seq, bool strong);
     std::shared_ptr<SHAMapAbstractNode> clone(std::uint32_t seq) const override;
 
     bool isEmpty () const;
@@ -157,9 +160,9 @@ public:
     int getBranchCount () const;
     SHAMapHash const& getChildHash (int m) const;
 
+    SHAMapAbstractNode* getChildPointer (int branch);
     void setChild(int m, std::shared_ptr<SHAMapAbstractNode> const& child);
     void shareChild (int m, std::shared_ptr<SHAMapAbstractNode> const& child);
-    SHAMapAbstractNode* getChildPointer (int branch);
     std::shared_ptr<SHAMapAbstractNode> getChild (int branch);
     virtual std::shared_ptr<SHAMapAbstractNode>
         canonicalizeChild (int branch, std::shared_ptr<SHAMapAbstractNode> node);
@@ -178,9 +181,58 @@ public:
     friend std::shared_ptr<SHAMapAbstractNode>
         SHAMapAbstractNode::make(Slice const& rawNode, std::uint32_t seq,
              SHANodeFormat format, SHAMapHash const& hash, bool hashValid,
-                 beast::Journal j, SHAMapNodeID const& id);
+                 bool isBacked, beast::Journal j, SHAMapNodeID const& id);
 
     friend class SHAMapInnerNodeV2;
+};
+
+class SHAMapChildren
+{
+    bool isStrong_;
+
+protected:
+
+    SHAMapChildren (bool strong) : isStrong_ (strong) { ; }
+
+public:
+
+    virtual ~SHAMapChildren() = default;
+
+    bool isStrong() const { return isStrong_; }
+
+    virtual void setChild(int m, std::shared_ptr<SHAMapAbstractNode> const& child) = 0;
+    virtual std::shared_ptr<SHAMapAbstractNode> getChild (int branch) = 0;
+    virtual std::shared_ptr<SHAMapAbstractNode>
+        canonicalizeChild (int branch, std::shared_ptr<SHAMapAbstractNode> node) = 0;
+
+};
+
+class SHAMapWeakChildren : public SHAMapChildren
+{
+    std::weak_ptr<SHAMapAbstractNode> mChildren[16];
+
+public:
+
+    SHAMapWeakChildren() : SHAMapChildren (false) { ; }
+    virtual ~SHAMapWeakChildren() = default;
+    virtual void setChild(int m, std::shared_ptr<SHAMapAbstractNode> const& child) override;
+    virtual std::shared_ptr<SHAMapAbstractNode> getChild (int branch) override;
+    virtual std::shared_ptr<SHAMapAbstractNode>
+        canonicalizeChild (int branch, std::shared_ptr<SHAMapAbstractNode> node) override;
+};
+
+class SHAMapStrongChildren : public SHAMapChildren
+{
+    std::shared_ptr<SHAMapAbstractNode> mChildren[16];
+
+public:
+
+    SHAMapStrongChildren() : SHAMapChildren (true) { ; }
+    virtual ~SHAMapStrongChildren() = default;
+    virtual void setChild(int m, std::shared_ptr<SHAMapAbstractNode> const& child) override;
+    virtual std::shared_ptr<SHAMapAbstractNode> getChild (int branch) override;
+    virtual std::shared_ptr<SHAMapAbstractNode>
+        canonicalizeChild (int branch, std::shared_ptr<SHAMapAbstractNode> node) override;
 };
 
 class SHAMapTreeNode;
@@ -194,8 +246,8 @@ class SHAMapInnerNodeV2
     uint256 common_ = {};
     int     depth_ = 64;
 public:
-    explicit SHAMapInnerNodeV2(std::uint32_t seq);
-    SHAMapInnerNodeV2(std::uint32_t seq, int depth);
+    explicit SHAMapInnerNodeV2(std::uint32_t seq, bool isStrong);
+    SHAMapInnerNodeV2(std::uint32_t seq, int depth, bool isStrong);
     std::shared_ptr<SHAMapAbstractNode> clone(std::uint32_t seq) const override;
 
     uint256 const& common() const;
@@ -215,7 +267,7 @@ public:
     friend std::shared_ptr<SHAMapAbstractNode>
         SHAMapAbstractNode::make(Slice const& rawNode, std::uint32_t seq,
              SHANodeFormat format, SHAMapHash const& hash, bool hashValid,
-                 beast::Journal j, SHAMapNodeID const& id);
+                 bool isBacked, beast::Journal j, SHAMapNodeID const& id);
 };
 
 // SHAMapTreeNode represents a leaf, and may eventually be renamed to reflect that.
@@ -332,9 +384,13 @@ SHAMapAbstractNode::isInBounds (SHAMapNodeID const &id) const
 // SHAMapInnerNode
 
 inline
-SHAMapInnerNode::SHAMapInnerNode(std::uint32_t seq)
+SHAMapInnerNode::SHAMapInnerNode(std::uint32_t seq, bool isStrong)
     : SHAMapAbstractNode(tnINNER, seq)
 {
+    if (isStrong)
+        mChildren = std::make_unique<SHAMapStrongChildren>();
+    else
+        mChildren = std::make_unique<SHAMapWeakChildren>();
 }
 
 inline
@@ -369,14 +425,14 @@ SHAMapInnerNode::setFullBelowGen (std::uint32_t gen)
 // SHAMapInnerNodeV2
 
 inline
-SHAMapInnerNodeV2::SHAMapInnerNodeV2(std::uint32_t seq)
-    : SHAMapInnerNode(seq)
+SHAMapInnerNodeV2::SHAMapInnerNodeV2(std::uint32_t seq, bool isStrong)
+    : SHAMapInnerNode(seq, isStrong)
 {
 }
 
 inline
-SHAMapInnerNodeV2::SHAMapInnerNodeV2(std::uint32_t seq, int depth)
-    : SHAMapInnerNode(seq)
+SHAMapInnerNodeV2::SHAMapInnerNodeV2(std::uint32_t seq, int depth, bool isStrong)
+    : SHAMapInnerNode(seq, isStrong)
     , depth_(depth)
 {
 }
