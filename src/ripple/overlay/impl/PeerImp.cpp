@@ -1703,6 +1703,12 @@ PeerImp::onMessage (std::shared_ptr <protocol::TMGetObjectByHash> const& m)
             return;
         }
 
+        if (packet.type () == protocol::TMGetObjectByHash::otTRANSACTION_TREE)
+        {
+            doTxTree (m);
+            return;
+        }
+
         fee_ = Resource::feeMediumBurdenPeer;
 
         protocol::TMGetObjectByHash reply;
@@ -1758,6 +1764,12 @@ PeerImp::onMessage (std::shared_ptr <protocol::TMGetObjectByHash> const& m)
     }
     else
     {
+        if (packet.type () == protocol::TMGetObjectByHash::otTRANSACTION_TREE)
+        {
+            gotTxTree (m);
+            return;
+        }
+
         // this is a reply
         std::uint32_t pLSeq = 0;
         bool pLDo = true;
@@ -1869,6 +1881,70 @@ PeerImp::doFetchPack (const std::shared_ptr<protocol::TMGetObjectByHash>& packet
             pap->getLedgerMaster().makeFetchPack(
                 weak, packet, hash, elapsed);
         });
+}
+
+void
+PeerImp::doTxTree (const std::shared_ptr<protocol::TMGetObjectByHash>& packet)
+{
+    // We have received a request from a peer for a ledger's
+    // header and transactions
+
+    if (app_.getFeeTrack ().isLoadedLocal () ||
+        (app_.getLedgerMaster().getValidatedLedgerAge() > 40s) ||
+        (app_.getJobQueue().getJobCount(jtPACK) > 10))
+    {
+        JLOG(p_journal_.info()) << "Too busy to make transaction tree";
+        return;
+    }
+
+    if (packet->ledgerhash ().size () != 32)
+    {
+        JLOG(p_journal_.warn()) << "Txn tree hash size malformed";
+        fee_ = Resource::feeInvalidRequest;
+        return;
+    }
+
+    fee_ = Resource::feeMediumBurdenPeer;
+
+    uint256 hash;
+    memcpy (hash.begin (), packet->ledgerhash ().data (), 32);
+
+    std::weak_ptr<PeerImp> weak = shared_from_this();
+    auto elapsed = UptimeTimer::getInstance().getElapsedSeconds();
+    auto const pap = &app_;
+    app_.getJobQueue ().addJob (
+        jtPACK, "MakeTxnTree",
+        [pap, weak, packet, hash, elapsed] (Job&) {
+            pap->getLedgerMaster().makeTxnTree(
+                weak, packet, hash, elapsed);
+        });
+}
+
+void
+PeerImp::gotTxTree (const std::shared_ptr<protocol::TMGetObjectByHash>& packet)
+{
+    if ((! packet->has_ledgerhash()) ||
+        (packet->ledgerhash().size() != 32) ||
+        (packet->objects().size() < 1) ||
+        (! packet->objects(0).has_ledgerseq()))
+    {
+        JLOG(p_journal_.warn()) << "TxTree reply maformed";
+        fee_ = Resource::feeInvalidRequest;
+        return;
+    }
+
+#if 0
+    uint256 hash;
+    memcpy (hash.begin(), packet->ledgerhash().data(), 32);
+
+    std::uint32_t seq = packet->objects(0).ledgerseq();
+
+    // WRITEME
+    if (app_.getLedgerMaster().wantTxTree(hash, seq))
+        app_.getLedgerMaster().gotTxTree(hash, seq, /**/)
+    else
+        fee_ = Resource::feeUnwantedData;
+#endif
 }
 
 void

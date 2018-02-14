@@ -45,6 +45,12 @@ private:
     DecayWindow<30, clock_type> fetchRate_;
     beast::Journal j_;
 
+    // ledger we're trying to work forward from
+    std::shared_ptr<Ledger> validLedger_;
+
+    // ledger we're trying to wkr forward to
+    std::shared_ptr<InboundLedger> nextLedger_;
+
 public:
     using u256_acq_pair = std::pair<
         uint256,

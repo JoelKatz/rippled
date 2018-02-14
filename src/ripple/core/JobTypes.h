@@ -40,7 +40,7 @@ public:
         using namespace std::chrono_literals;
         int maxLimit = std::numeric_limits <int>::max ();
 
-add(    jtPACK,          "makeFetchPack",           1,        false, 0ms,     0ms);
+add(    jtPACK,          "makeDataPack",            1,        false, 0ms,     0ms);
 add(    jtPUBOLDLEDGER,  "publishAcqLedger",        2,        false, 10000ms, 15000ms);
 add(    jtVALIDATION_ut, "untrustedValidation",     maxLimit, false, 2000ms,  5000ms);
 add(    jtTRANSACTION_l, "localTransaction",        maxLimit, false, 100ms,   500ms);

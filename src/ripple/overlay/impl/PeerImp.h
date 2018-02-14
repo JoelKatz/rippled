@@ -444,6 +444,12 @@ private:
     doFetchPack (const std::shared_ptr<protocol::TMGetObjectByHash>& packet);
 
     void
+    doTxTree (const std::shared_ptr<protocol::TMGetObjectByHash>& packet);
+
+    void
+    gotTxTree (const std::shared_ptr<protocol::TMGetObjectByHash>& packet);
+
+    void
     checkTransaction (int flags, bool checkSignature,
         std::shared_ptr<STTx const> const& stx);
 

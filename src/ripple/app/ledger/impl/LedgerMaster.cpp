@@ -1905,7 +1905,108 @@ LedgerMaster::makeFetchPack (
     }
     catch (std::exception const&)
     {
-        JLOG(m_journal.warn()) << "Exception building fetch pach";
+        JLOG(m_journal.warn()) << "Exception building fetch pack";
+    }
+}
+
+void
+LedgerMaster::makeTxnTree (
+    std::weak_ptr<Peer> const& wPeer,
+    std::shared_ptr<protocol::TMGetObjectByHash> const& request,
+    uint256 const& ledgerHash,
+    std::uint32_t uUptime)
+{
+    if (UptimeTimer::getInstance ().getElapsedSeconds () > (uUptime + 1))
+    {
+        JLOG(m_journal.info()) << "Txn tree request got stale";
+        return;
+    }
+
+    if (app_.getFeeTrack ().isLoadedLocal () ||
+        (getValidatedLedgerAge() > 40s))
+    {
+        JLOG(m_journal.info()) << "Too busy to make txn tree";
+        return;
+    }
+
+    auto peer = wPeer.lock ();
+
+    if (!peer)
+        return;
+
+    auto ledger = getLedgerByHash (ledgerHash);
+
+    if (!ledger)
+    {
+        JLOG(m_journal.info())
+            << "Peer requests txn tree for ledger we don't have: "
+            << ledger;
+        peer->charge (Resource::feeRequestNoReply);
+        return;
+    }
+
+    if (ledger->open())
+    {
+        JLOG(m_journal.warn())
+            << "Peer requests txn tree from open ledger: "
+            << ledger;
+        peer->charge (Resource::feeInvalidRequest);
+        return;
+    }
+
+    if (ledger->info().seq < getEarliestFetch())
+    {
+        JLOG(m_journal.debug())
+            << "Peer requests txn tree that is too early";
+        peer->charge (Resource::feeInvalidRequest);
+        return;
+    }
+
+    try
+    {
+        protocol::TMGetObjectByHash reply;
+        reply.set_type (protocol::TMGetObjectByHash::otTRANSACTION_TREE);
+        reply.set_query (false);
+        reply.set_ledgerhash (request->ledgerhash ());
+        if (request->has_seq ())
+            reply.set_seq (request->seq());
+
+        // add ledger header
+        protocol::TMIndexedObject& newObj = *reply.add_objects ();
+        newObj.set_hash (ledger->info().hash.data(), 256 / 8);
+        newObj.set_ledgerseq (ledger->info().seq);
+        Serializer s (256);
+        s.add32 (HashPrefix::ledgerMaster);
+        addRaw (ledger->info(), s);
+        newObj.set_data (s.getDataPtr (), s.getLength ());
+
+        // The map is needed to sort the transactions into execution order
+        std::map<uint32_t, Blob> txns;
+        ledger->txMap().visitLeaves(
+            [&txns](std::shared_ptr<SHAMapItem const> const &item)
+            {
+                SerialIter iter (item->slice());
+
+                auto txn = iter.getSlice (iter.getVLDataLength());
+                STObject meta (iter.getSlice (iter.getVLDataLength()), sfMetadata);
+
+                txns.emplace (meta.getFieldU32(sfTransactionIndex),
+                    Blob {txn.data(), txn.data() + txn.size()});
+            });
+        for (auto const& t : txns)
+        {
+            protocol::TMIndexedObject& newObj = * (reply.add_objects ());
+            newObj.set_data (t.second.data(), t.second.size());
+        }
+
+        JLOG(m_journal.info())
+            << "Built fetch pack with " << reply.objects ().size () << " nodes";
+        auto msg = std::make_shared<Message> (reply, protocol::mtGET_OBJECTS);
+        peer->send (msg);
+    }
+    catch (std::exception const&)
+    {
+        JLOG(m_journal.warn()) << "Exception building transaction tree";
     }
 }
 
