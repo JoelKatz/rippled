@@ -223,6 +223,26 @@ public:
     void takeReplay (std::unique_ptr<LedgerReplay> replay);
     std::unique_ptr<LedgerReplay> releaseReplay ();
 
+    enum BuildResult
+    {
+        brSuccess = 0,
+        brBadHeader,
+        brException,
+        brBadSignature,
+        brTransactionFailed,
+        brLedgerHashMismatch
+    };
+
+    // Build a ledger from a prior ledger and a transaction set
+    // known to have executed in a particular order
+    std::pair <BuildResult, std::shared_ptr<Ledger>> buildLedger (
+    Ledger const& priorLedger,
+    uint256 const& ledgerHash,
+    Slice header,
+    std::vector<Slice> const& txns,
+    boost::tribool checkSignatures,
+    beast::Journal jnl);
+
     // Fetch Packs
     void gotFetchPack (
         bool progress,

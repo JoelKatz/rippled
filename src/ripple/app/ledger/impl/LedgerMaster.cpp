@@ -2016,4 +2016,75 @@ LedgerMaster::getFetchPackCacheSize () const
     return fetch_packs_.getCacheSize ();
 }
 
+std::pair <LedgerMaster::BuildResult, std::shared_ptr<Ledger>>
+LedgerMaster::buildLedger (
+    Ledger const& priorLedger,
+    uint256 const& ledgerHash,
+    Slice header,
+    std::vector<Slice> const& txns,
+    boost::tribool checkSignatures,
+    beast::Journal jnl)
+{
+    LedgerInfo info = InboundLedger::deserializeHeader (header, true);
+    if ((info.parentHash != priorLedger.info().hash) ||
+        (info.seq != (priorLedger.info().seq + 1)) ||
+        (info.parentCloseTime != priorLedger.info().closeTime))
+    {
+        return { brBadHeader, nullptr };
+    }
+
+    auto newLedger = std::make_shared<Ledger>(priorLedger, info.closeTime);
+
+    try
+    {
+        OpenView accum(&*newLedger);
+
+        for (auto const& tx : txns)
+        {
+            STTx txn(tx);
+
+            if ((checkSignatures == true) &&
+                ! txn.checkSign(true).first)
+            {
+                    return { brBadSignature, newLedger };
+            }
+
+            if (applyTransaction(
+                app_, accum, txn, false,
+                boost::logic::indeterminate(checkSignatures) ? tapNONE : tapNO_CHECK_SIGN,
+                    jnl) != ApplyResult::Success)
+            {
+                return { brTransactionFailed, newLedger };
+            }
+        }
+
+        accum.apply (*newLedger);
+        newLedger->updateSkipList();
+
+        // WRITEME: write ledger header to storage
+
+        newLedger->stateMap().flushDirty(
+            hotACCOUNT_NODE, newLedger->info().seq);
+        newLedger->txMap().flushDirty(
+            hotTRANSACTION_NODE, newLedger->info().seq);
+        newLedger->unshare();
+
+        newLedger->setImmutable (app_.config());
+
+        if (newLedger->info().hash != ledgerHash)
+        {
+            return { brLedgerHashMismatch, newLedger };
+        }
+
+        storeLedger(newLedger);
+    }
+    catch (...)
+    {
+        return { brException, newLedger };
+    }
+
+    return { brSuccess, newLedger };
+
+}
+
 } // ripple
