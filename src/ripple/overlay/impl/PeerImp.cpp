@@ -2169,40 +2169,40 @@ PeerImp::getLedger (std::shared_ptr<protocol::TMGetLedger> const& m)
             logMe += to_string (ledgerhash);
             ledger = app_.getLedgerMaster ().getLedgerByHash (ledgerhash);
 
+            if (!ledger && packet.has_ledgerseq())
+            {
+                auto seq = packet.ledgerseq();
+                if (seq >= NodeStore::genesisSeq)
+                {
+                    if (auto shardStore = app_.getShardStore())
+                        ledger = shardStore->fetchLedger(ledgerhash, seq);
+                }
+            }
+
             if (!ledger)
             {
                 JLOG(p_journal_.trace()) <<
                     "GetLedger: Don't have " << ledgerhash;
             }
+
             if (!ledger && (packet.has_querytype () &&
                 !packet.has_requestcookie ()))
             {
-                std::uint32_t seq = 0;
-                if (packet.has_ledgerseq())
+                // We don't have the requested ledger
+                // Searchf or a peer who might
+                auto const v = getPeerWithLedger(overlay_, ledgerhash,
+                    packet.has_ledgerseq() ? packet.ledgerseq() : 0, this);
+                if (! v || (v.get() == this))
                 {
-                    seq = packet.ledgerseq();
-                    if (seq >= NodeStore::genesisSeq)
-                    {
-                        if (auto shardStore = app_.getShardStore())
-                            ledger = shardStore->fetchLedger(ledgerhash, seq);
-                    }
-                }
-                if (! ledger)
-                {
-                    auto const v = getPeerWithLedger(
-                        overlay_, ledgerhash, seq, this);
-                    if (! v)
-                    {
-                        JLOG(p_journal_.trace()) << "GetLedger: Cannot route";
-                        return;
-                    }
-
-                    packet.set_requestcookie (id ());
-                    v->send (std::make_shared<Message>(
-                        packet, protocol::mtGET_LEDGER));
-                    JLOG(p_journal_.debug()) << "GetLedger: Request routed";
+                    JLOG(p_journal_.trace()) << "GetLedger: Cannot route";
                     return;
                 }
+
+                packet.set_requestcookie (id ());
+                v->send (std::make_shared<Message>(
+                    packet, protocol::mtGET_LEDGER));
+                JLOG(p_journal_.debug()) << "GetLedger: Request routed";
+                return;
             }
         }
         else if (packet.has_ledgerseq ())
