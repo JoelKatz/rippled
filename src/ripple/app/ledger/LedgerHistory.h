@@ -75,12 +75,15 @@ public:
     */
     void sweep (LedgerIndex currentIndex)
     {
+        std::list <std::shared_ptr<const Ledger>> ledgers;
         m_ledgers_by_hash.sweep (
-            [currentIndex](Ledger const& l, bool)
+            [currentIndex, &ledgers](std::shared_ptr<const Ledger> const& l, bool)
             {
-                if ((l.info().seq + 4) < currentIndex)
-                    l.unPin();
+                if ((l->info().seq + 4) < currentIndex)
+                    ledgers.push_back(l);
             });
+        for (auto const &l : ledgers)
+            l->unPin();
         m_consensus_validated.sweep ();
     }
 
