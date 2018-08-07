@@ -144,7 +144,7 @@ public:
     int                     fieldMeta;
     int                     fieldNum;
     IsSigning const         signingField;
-    std::string             jsonName;
+    Json::StaticString      jsonName;
 
     SField(SField const&) = delete;
     SField& operator=(SField const&) = delete;
@@ -165,18 +165,23 @@ public:
     {
         return getField (field_code (type, value));
     }
+
     static const SField& getField (SerializedTypeID type, int value)
     {
         return getField (field_code (type, value));
     }
 
-    std::string getName () const;
-    bool hasName () const
+    std::string const& getName () const
     {
-        return !fieldName.empty ();
+        return fieldName;
     }
 
-    std::string const& getJsonName () const
+    bool hasName () const
+    {
+        return fieldNum > 0;
+    }
+
+    Json::StaticString const& getJsonName () const
     {
         return jsonName;
     }
