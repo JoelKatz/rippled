@@ -253,6 +253,52 @@ LedgerMaster::addHeldTransaction (
     mHeldTransactions.insert (transaction->getSTransaction ());
 }
 
+// Validate a ledger's close time and sequence number if we're considering
+// jumping to that ledger. This helps defend agains some rare hostile or
+// insane majority scenarios.
+bool
+LedgerMaster::canBeCurrent (std::shared_ptr<Ledger const> const& ledger)
+{
+    assert (ledger);
+
+    auto closeTime = app_.timeKeeper().closeTime();
+    auto ledgerClose = ledger->info().parentCloseTime;
+
+    // parent close time must be within three minutes of current time
+    if ((std::max (closeTime, ledgerClose) - std::min (closeTime, ledgerClose))
+        > 3min)
+    {
+        JLOG (m_journal.warn()) << "Candidate for current ledger has close time "
+            << ledgerClose << " at network time " << closeTime;
+        return false;
+    }
+
+    auto validLedger = getValidatedLedger();
+    if (validLedger)
+    {
+        // sequence number must not be too low
+        if (ledger->info().seq < validLedger->info().seq)
+        {
+            JLOG (m_journal.warn()) << "Candidate for current ledger has low seq "
+                << ledger->info().seq << " < " << validLedger->info().seq);
+            return false;
+        }
+
+        // Wequence number must not be too high. We allow ten ledgers for time
+        // inaccuracies and a maximum run rate of one ledger every two seconds
+        LedgerIndex maxSeq = validLedger->info().seq + 10;
+        maxSeq += (closeTime - validLedger->info().parentCloseTime) / 2;
+        if (ledger->info().seq > maxSeq)
+        {
+            JLOG (m_journal.warn()) << "Candidate for current ledger has high seq "
+                << ledger->info().seq << " > " << maxSeq;
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void
 LedgerMaster::switchLCL(std::shared_ptr<Ledger const> const& lastClosed)
 {
