@@ -32,7 +32,13 @@ enum
     // This is only used to pre-allocate the array for
     // batch objects and does not affect the amount written.
     //
-    batchWritePreallocationSize = 256
+    batchWritePreallocationSize = 256,
+
+    // This sets a limit on the maximum number of writes
+    // in a batch. Actual usage can be twice this since
+    // we have a new batch growing us we write the lod.
+    //
+    batchWriteLimitSize = 65536
 };
 
 /** Return codes from Backend operations. */
