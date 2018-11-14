@@ -320,17 +320,15 @@ private:
 
     // Simple descent
     // Get a child of the specified node
-    SHAMapAbstractNode* descend (SHAMapInnerNode*, int branch) const;
-    SHAMapAbstractNode* descendThrow (SHAMapInnerNode*, int branch) const;
     std::shared_ptr<SHAMapAbstractNode> descend (std::shared_ptr<SHAMapInnerNode> const&, int branch) const;
     std::shared_ptr<SHAMapAbstractNode> descendThrow (std::shared_ptr<SHAMapInnerNode> const&, int branch) const;
 
     // Descend with filter
-    SHAMapAbstractNode* descendAsync (SHAMapInnerNode* parent, int branch,
+    std::shared_ptr<SHAMapAbstractNode> descendAsync (std::shared_ptr<SHAMapInnerNode> const& parent, int branch,
         SHAMapSyncFilter* filter, bool& pending) const;
 
-    std::pair <SHAMapAbstractNode*, SHAMapNodeID>
-        descend (SHAMapInnerNode* parent, SHAMapNodeID const& parentID,
+    std::pair <std::shared_ptr<SHAMapAbstractNode>, SHAMapNodeID>
+        descend (std::shared_ptr<SHAMapInnerNode> const& parent, SHAMapNodeID const& parentID,
         int branch, SHAMapSyncFilter* filter) const;
 
     // Non-storing

@@ -363,16 +363,6 @@ std::shared_ptr<SHAMapAbstractNode> SHAMap::fetchNode (SHAMapHash const& hash) c
     return node;
 }
 
-SHAMapAbstractNode* SHAMap::descendThrow (SHAMapInnerNode* parent, int branch) const
-{
-    SHAMapAbstractNode* ret = descend (parent, branch);
-
-    if (! ret && ! parent->isEmptyBranch (branch))
-        Throw<SHAMapMissingNode> (type_, parent->getChildHash (branch));
-
-    return ret;
-}
-
 std::shared_ptr<SHAMapAbstractNode>
 SHAMap::descendThrow (std::shared_ptr<SHAMapInnerNode> const& parent, int branch) const
 {
@@ -382,20 +372,6 @@ SHAMap::descendThrow (std::shared_ptr<SHAMapInnerNode> const& parent, int branch
         Throw<SHAMapMissingNode> (type_, parent->getChildHash (branch));
 
     return ret;
-}
-
-SHAMapAbstractNode* SHAMap::descend (SHAMapInnerNode* parent, int branch) const
-{
-    SHAMapAbstractNode* ret = parent->getChildPointer (branch);
-    if (ret || !backed_)
-        return ret;
-
-    std::shared_ptr<SHAMapAbstractNode> node = fetchNodeNT (parent->getChildHash (branch));
-    if (!node || isInconsistentNode(node))
-        return nullptr;
-
-    node = parent->canonicalizeChild (branch, std::move(node));
-    return node.get ();
 }
 
 std::shared_ptr<SHAMapAbstractNode>
@@ -424,15 +400,15 @@ SHAMap::descendNoStore (std::shared_ptr<SHAMapInnerNode> const& parent, int bran
     return ret;
 }
 
-std::pair <SHAMapAbstractNode*, SHAMapNodeID>
-SHAMap::descend (SHAMapInnerNode * parent, SHAMapNodeID const& parentID,
+std::pair <std::shared_ptr<SHAMapAbstractNode>, SHAMapNodeID>
+SHAMap::descend (std::shared_tr<SHAMapInnerNode> parent, SHAMapNodeID const& parentID,
     int branch, SHAMapSyncFilter * filter) const
 {
     assert (parent->isInner ());
     assert ((branch >= 0) && (branch < 16));
     assert (!parent->isEmptyBranch (branch));
 
-    SHAMapAbstractNode* child = parent->getChildPointer (branch);
+    std::shared_ptr<SHAMapAbstractNode> child = parent->getChild (branch);
     auto const& childHash = parent->getChildHash (branch);
 
     if (!child)
@@ -462,13 +438,13 @@ SHAMap::descend (SHAMapInnerNode * parent, SHAMapNodeID const& parentID,
     return std::make_pair (child, parentID.getChildNodeID (branch));
 }
 
-SHAMapAbstractNode*
-SHAMap::descendAsync (SHAMapInnerNode* parent, int branch,
+std::shared_ptr<SHAMapAbstractNode>
+SHAMap::descendAsync (std::shread_ptr<SHAMapInnerNode> parent, int branch,
     SHAMapSyncFilter * filter, bool & pending) const
 {
     pending = false;
 
-    SHAMapAbstractNode* ret = parent->getChildPointer (branch);
+    std::shared_ptr<SHAMapAbstractNode> ret = parent->getChild (branch);
     if (ret)
         return ret;
 
@@ -1307,7 +1283,7 @@ void SHAMap::dump (bool hash) const
             {
                 if (!inner->isEmptyBranch (i))
                 {
-                    auto child = inner->getChildPointer (i);
+                    auto child = inner->getChild (i);
                     if (child)
                     {
                         assert (child->getNodeHash() == inner->getChildHash (i));

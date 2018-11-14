@@ -160,7 +160,6 @@ public:
     int getBranchCount () const;
     SHAMapHash const& getChildHash (int m) const;
 
-    SHAMapAbstractNode* getChildPointer (int branch);
     void setChild(int m, std::shared_ptr<SHAMapAbstractNode> const& child);
     void shareChild (int m, std::shared_ptr<SHAMapAbstractNode> const& child);
     std::shared_ptr<SHAMapAbstractNode> getChild (int branch);

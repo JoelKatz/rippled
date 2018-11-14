@@ -690,12 +690,6 @@ SHAMapInnerNode::getChild (int branch)
     return mChildren->getChild (branch);
 }
 
-SHAMapAbstractNode*
-SHAMapInnerNode::getChildPointer (int branch)
-{
-    return mChildren->getChild(branch).get ();
-}
-
 std::shared_ptr<SHAMapAbstractNode>
 SHAMapInnerNode::canonicalizeChild(int branch, std::shared_ptr<SHAMapAbstractNode> node)
 {
