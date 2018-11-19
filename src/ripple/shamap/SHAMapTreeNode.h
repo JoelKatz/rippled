@@ -159,7 +159,6 @@ public:
 
     void setChild(int m, std::shared_ptr<SHAMapAbstractNode> const& child);
     void shareChild (int m, std::shared_ptr<SHAMapAbstractNode> const& child);
-    SHAMapAbstractNode* getChildPointer (int branch);
     std::shared_ptr<SHAMapAbstractNode> getChild (int branch);
     virtual std::shared_ptr<SHAMapAbstractNode>
         canonicalizeChild (int branch, std::shared_ptr<SHAMapAbstractNode> node);

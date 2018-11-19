@@ -679,16 +679,6 @@ void SHAMapInnerNode::shareChild (int m, std::shared_ptr<SHAMapAbstractNode> con
     mChildren[m] = child;
 }
 
-SHAMapAbstractNode*
-SHAMapInnerNode::getChildPointer (int branch)
-{
-    assert (branch >= 0 && branch < 16);
-    assert (isInner());
-
-    std::lock_guard <std::mutex> lock (childLock);
-    return mChildren[branch].get ();
-}
-
 std::shared_ptr<SHAMapAbstractNode>
 SHAMapInnerNode::getChild (int branch)
 {

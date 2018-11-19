@@ -295,10 +295,10 @@ private:
 
     /** Walk towards the specified id, returning the node.  Caller must check
         if the return is nullptr, and if not, if the node->peekItem()->key() == id */
-    SHAMapTreeNode*
+    std::shared_ptr<SHAMapTreeNode>
         walkTowardsKey(uint256 const& id, SharedPtrNodeStack* stack = nullptr) const;
     /** Return nullptr if key not found */
-    SHAMapTreeNode*
+    std::shared_ptr<SHAMapTreeNode>
         findKey(uint256 const& id) const;
 
     /** Unshare the node, allowing it to be modified */
@@ -316,22 +316,22 @@ private:
         writeNode(NodeObjectType t, std::uint32_t seq,
                   std::shared_ptr<SHAMapAbstractNode> node) const;
 
-    SHAMapTreeNode* firstBelow (std::shared_ptr<SHAMapAbstractNode>,
-                                SharedPtrNodeStack& stack, int branch = 0) const;
+    std::shared_ptr<SHAMapTreeNode>
+         firstBelow (std::shared_ptr<SHAMapAbstractNode> const&,
+                  SharedPtrNodeStack& stack, int branch = 0) const;
 
     // Simple descent
     // Get a child of the specified node
-    SHAMapAbstractNode* descend (SHAMapInnerNode*, int branch) const;
-    SHAMapAbstractNode* descendThrow (SHAMapInnerNode*, int branch) const;
     std::shared_ptr<SHAMapAbstractNode> descend (std::shared_ptr<SHAMapInnerNode> const&, int branch) const;
     std::shared_ptr<SHAMapAbstractNode> descendThrow (std::shared_ptr<SHAMapInnerNode> const&, int branch) const;
 
     // Descend with filter
-    SHAMapAbstractNode* descendAsync (SHAMapInnerNode* parent, int branch,
+    std::shared_ptr<SHAMapAbstractNode> descendAsync (
+        std::shared_ptr<SHAMapInnerNode> const& parent, int branch,
         SHAMapSyncFilter* filter, bool& pending) const;
 
-    std::pair <SHAMapAbstractNode*, SHAMapNodeID>
-        descend (SHAMapInnerNode* parent, SHAMapNodeID const& parentID,
+    std::pair <std::shared_ptr<SHAMapAbstractNode>, SHAMapNodeID> descend (
+        std::shared_ptr<SHAMapInnerNode> const& parent, SHAMapNodeID const& parentID,
         int branch, SHAMapSyncFilter* filter) const;
 
     // Non-storing
@@ -340,14 +340,15 @@ private:
         descendNoStore (std::shared_ptr<SHAMapInnerNode> const&, int branch) const;
 
     /** If there is only one leaf below this node, get its contents */
-    std::shared_ptr<SHAMapItem const> const& onlyBelow (SHAMapAbstractNode*) const;
+    std::shared_ptr<SHAMapItem const>
+        onlyBelow (std::shared_ptr<SHAMapAbstractNode> const&) const;
 
     bool hasInnerNode (SHAMapNodeID const& nodeID, SHAMapHash const& hash) const;
     bool hasLeafNode (uint256 const& tag, SHAMapHash const& hash) const;
 
-    SHAMapTreeNode const* peekFirstItem(SharedPtrNodeStack& stack) const;
-    SHAMapTreeNode const* peekNextItem(uint256 const& id, SharedPtrNodeStack& stack) const;
-    bool walkBranch (SHAMapAbstractNode* node,
+    std::shared_ptr<SHAMapTreeNode> peekFirstItem(SharedPtrNodeStack& stack) const;
+    std::shared_ptr<SHAMapTreeNode> peekNextItem(uint256 const& id, SharedPtrNodeStack& stack) const;
+    bool walkBranch (std::shared_ptr<SHAMapAbstractNode> const& node,
                      std::shared_ptr<SHAMapItem const> const& otherMapItem,
                      bool isFirstMap, Delta & differences, int & maxCount) const;
     int walkSubTree (bool doWrite, NodeObjectType t, std::uint32_t seq);
@@ -373,11 +374,11 @@ private:
 
         // nodes we are in the process of traversing
         using StackEntry = std::tuple<
-            SHAMapInnerNode*, // pointer to the node
-            SHAMapNodeID,     // the node's ID
-            int,              // while child we check first
-            int,              // which child we check next
-            bool>;            // whether we've found any missing children yet
+            std::shared_ptr<SHAMapInnerNode>, // pointer to the node
+            SHAMapNodeID,                     // the node's ID
+            int,                              // which child we check first
+            int,                              // which child we check next
+            bool>;                            // found any missing children yet
 
         // We explicitly choose to specify the use of std::deque here, because
         // we need to ensure that pointers and/or references to existing elements
@@ -387,10 +388,10 @@ private:
         std::stack <StackEntry, std::deque<StackEntry>> stack_;
 
         // nodes we may acquire from deferred reads
-        std::vector <std::tuple <SHAMapInnerNode*, SHAMapNodeID, int>> deferredReads_;
+        std::vector <std::tuple <std::shared_ptr<SHAMapInnerNode>, SHAMapNodeID, int>> deferredReads_;
 
         // nodes we need to resume after we get their children from deferred reads
-        std::map<SHAMapInnerNode*, SHAMapNodeID> resumes_;
+        std::map<std::shared_ptr<SHAMapInnerNode>, SHAMapNodeID> resumes_;
 
         MissingNodes (
             int max, SHAMapSyncFilter* filter,
