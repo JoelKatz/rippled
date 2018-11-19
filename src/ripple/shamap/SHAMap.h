@@ -264,6 +264,7 @@ public:
     std::shared_ptr<SHAMap> make_v1() const;
     std::shared_ptr<SHAMap> make_v2() const;
     int unshare ();
+    void unPin ();
 
     void dump (bool withHashes = false) const;
     void invariants() const;

@@ -723,6 +723,23 @@ SHAMapInnerNode::canonicalizeChild(int branch, std::shared_ptr<SHAMapAbstractNod
     return node;
 }
 
+void SHAMapInnerNode::unPin(std::stack<std::shared_ptr<SHAMapInnerNode>> &stack)
+{
+    std::lock_guard <std::mutex> lock (childLock);
+
+    for (auto pos = 0; pos < 16; ++pos)
+    {
+        if (mChildren[pos] != nullptr)
+        {
+            if (mChildren[pos]->isInner())
+                stack.emplace (std::dynamic_pointer_cast<SHAMapInnerNode>(
+                        std::move (mChildren[pos])));
+            else
+                mChildren[pos].reset();
+        }
+    }
+}
+
 std::shared_ptr<SHAMapAbstractNode>
 SHAMapInnerNodeV2::canonicalizeChild(int branch, std::shared_ptr<SHAMapAbstractNode> node)
 {

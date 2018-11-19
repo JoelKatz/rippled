@@ -317,6 +317,8 @@ public:
     void make_v2();
     void invariants() const;
     void unshare() const;
+    void unPin() const;
+
 private:
     class sles_iter_impl;
     class txs_iter_impl;
