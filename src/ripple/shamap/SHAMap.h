@@ -347,7 +347,10 @@ private:
     bool hasLeafNode (uint256 const& tag, SHAMapHash const& hash) const;
 
     std::shared_ptr<SHAMapTreeNode> peekFirstItem(SharedPtrNodeStack& stack) const;
-    std::shared_ptr<SHAMapTreeNode> peekNextItem(uint256 const& id, SharedPtrNodeStack& stack) const;
+    std::shared_ptr<SHAMapTreeNode> peekNextItem(
+                uint256 const& id,
+                SharedPtrNodeStack& stack,
+                bool unPin = false) const;
     bool walkBranch (std::shared_ptr<SHAMapAbstractNode> const& node,
                      std::shared_ptr<SHAMapItem const> const& otherMapItem,
                      bool isFirstMap, Delta & differences, int & maxCount) const;

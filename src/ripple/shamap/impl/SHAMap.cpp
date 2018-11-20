@@ -616,14 +616,15 @@ SHAMap::peekFirstItem(SharedPtrNodeStack& stack) const
 }
 
 std::shared_ptr<SHAMapTreeNode>
-SHAMap::peekNextItem(uint256 const& id, SharedPtrNodeStack& stack) const
+SHAMap::peekNextItem(uint256 const& id,
+    SharedPtrNodeStack& stack, bool unPin) const
 {
     assert(!stack.empty());
     assert(stack.top().first->isLeaf());
     stack.pop();
     while (!stack.empty())
     {
-        auto node = stack.top().first;
+        auto node = std::move (stack.top().first);
         auto nodeID = stack.top().second;
         assert(!node->isLeaf());
         auto inner = std::static_pointer_cast<SHAMapInnerNode>(node);
@@ -639,17 +640,19 @@ SHAMap::peekNextItem(uint256 const& id, SharedPtrNodeStack& stack) const
                 return leaf;
             }
         }
-        if (backed_ && (state_ == SHAMapState::Immutable))
+
+        if (unPin && backed_ && (state_ == SHAMapState::Immutable))
         {
-            std::stack<std::shared_ptr<SHAMapInnerNode>> stack;
+            // we're going up, unPin down
+            std::stack<std::shared_ptr<SHAMapInnerNode>> pinStack;
 
-            inner->unPin (stack);
+            inner->unPin (pinStack);
 
-            while (! stack.empty ())
+            while (! pinStack.empty ())
             {
-                auto p = std::move (stack.top());
-                stack.pop();
-                p->unPin (stack);
+                auto p = std::move (pinStack.top());
+                pinStack.pop();
+                p->unPin (pinStack);
             }
         }
     }
