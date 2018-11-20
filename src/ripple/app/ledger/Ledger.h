@@ -318,6 +318,7 @@ public:
     void invariants() const;
     void unshare() const;
     void unPin() const;
+    void setTrim (bool) const;
 
 private:
     class sles_iter_impl;

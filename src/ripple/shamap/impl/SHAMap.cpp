@@ -617,7 +617,7 @@ SHAMap::peekFirstItem(SharedPtrNodeStack& stack) const
 
 std::shared_ptr<SHAMapTreeNode>
 SHAMap::peekNextItem(uint256 const& id,
-    SharedPtrNodeStack& stack, bool unPin) const
+    SharedPtrNodeStack& stack) const
 {
     assert(!stack.empty());
     assert(stack.top().first->isLeaf());
@@ -641,7 +641,7 @@ SHAMap::peekNextItem(uint256 const& id,
             }
         }
 
-        if (unPin && backed_ && (state_ == SHAMapState::Immutable))
+        if (trim_)
         {
             // we're going up, unPin down
             std::stack<std::shared_ptr<SHAMapInnerNode>> pinStack;
@@ -1147,7 +1147,7 @@ void SHAMap::unPin ()
     // Release strong pointers between nodes
     std::stack<std::shared_ptr<SHAMapInnerNode>> stack;
 
-    if (backed_ && (state_ == SHAMapState::Immutable))
+    if (trim_)
     {
         std::dynamic_pointer_cast<SHAMapInnerNode>(root_)->unPin (stack);
         int c = 1;

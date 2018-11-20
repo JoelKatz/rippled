@@ -325,6 +325,7 @@ InboundLedger::tryDB(Family& f)
             mSeq = mLedger->info().seq;
         mLedger->stateMap().setLedgerSeq(mSeq);
         mLedger->txMap().setLedgerSeq(mSeq);
+        mLedger->setTrim (true);
         mHaveHeader = true;
     }
 
@@ -868,6 +869,7 @@ bool InboundLedger::takeHeader (std::string const& data)
         mSeq = mLedger->info().seq;
     mLedger->stateMap().setLedgerSeq(mSeq);
     mLedger->txMap().setLedgerSeq(mSeq);
+    mLedger->setTrim (true);
     mHaveHeader = true;
 
     Serializer s (data.size () + 4);

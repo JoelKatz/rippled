@@ -88,6 +88,7 @@ private:
     SHAMapType                      type_;
     bool                            backed_ = true; // Map is backed by the database
     bool                            full_ = false; // Map is believed complete in database
+    bool                            trim_ = false; // Map should be trimmed
 
 public:
     class version
@@ -259,6 +260,7 @@ public:
         std::function<void (SHAMapHash const&, const Blob&)>) const;
 
     void setUnbacked ();
+    void setTrim (bool trim);
     bool is_v2() const;
     version get_version() const;
     std::shared_ptr<SHAMap> make_v1() const;
@@ -349,8 +351,7 @@ private:
     std::shared_ptr<SHAMapTreeNode> peekFirstItem(SharedPtrNodeStack& stack) const;
     std::shared_ptr<SHAMapTreeNode> peekNextItem(
                 uint256 const& id,
-                SharedPtrNodeStack& stack,
-                bool unPin = false) const;
+                SharedPtrNodeStack& stack) const;
     bool walkBranch (std::shared_ptr<SHAMapAbstractNode> const& node,
                      std::shared_ptr<SHAMapItem const> const& otherMapItem,
                      bool isFirstMap, Delta & differences, int & maxCount) const;
@@ -467,6 +468,13 @@ void
 SHAMap::setUnbacked ()
 {
     backed_ = false;
+}
+
+inline
+void
+SHAMap::setTrim (bool t)
+{
+    trim_ = t;
 }
 
 inline

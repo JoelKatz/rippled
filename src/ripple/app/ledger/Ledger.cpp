@@ -1079,6 +1079,13 @@ Ledger::unPin() const
 }
 
 void
+Ledger::setTrim(bool t) const
+{
+    stateMap_->setTrim(t);
+    txMap_->setTrim(t);
+}
+
+void
 Ledger::invariants() const
 {
     stateMap_->invariants();

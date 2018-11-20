@@ -77,6 +77,7 @@ buildLedgerImpl(
     // Accept ledger
     built->setAccepted(
         closeTime, closeResolution, closeTimeCorrect, app.config());
+    built->setTrim (true);
 
     return built;
 }

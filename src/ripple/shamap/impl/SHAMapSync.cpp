@@ -239,7 +239,7 @@ void SHAMap::gmn_ProcessNodes (MissingNodes& mn, MissingNodes::StackEntry& se)
     if (fullBelow)
     { // No partial node encountered below this node
         node->setFullBelowGen (mn.generation_);
-        if (backed_)
+        if (trim_)
         {
             std::stack<std::shared_ptr<SHAMapInnerNode>> stack;
             node->unPin(stack);
