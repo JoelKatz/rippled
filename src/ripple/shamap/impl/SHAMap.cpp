@@ -513,18 +513,18 @@ SHAMap::firstBelow(std::shared_ptr<SHAMapAbstractNode> const& node,
     }
     auto inner = std::static_pointer_cast<SHAMapInnerNode>(node);
     if (stack.empty())
-        stack.push({inner, SHAMapNodeID{}});
+        stack.emplace(inner, SHAMapNodeID{});
     else
     {
         if (is_v2())
         {
-            auto inner2 = std::dynamic_pointer_cast<SHAMapInnerNodeV2>(inner);
+            auto inner2 = std::dynamic_pointer_cast<SHAMapInnerNodeV2>(node);
             assert(inner2 != nullptr);
-            stack.push({inner2, {inner2->depth(), inner2->common()}});
+            stack.emplace(inner, SHAMapNodeID{inner2->depth(), inner2->common()});
         }
         else
         {
-            stack.push({inner, stack.top().second.getChildNodeID(branch)});
+            stack.emplace(inner, stack.top().second.getChildNodeID(branch));
         }
     }
     for (int i = 0; i < 16;)
@@ -535,19 +535,19 @@ SHAMap::firstBelow(std::shared_ptr<SHAMapAbstractNode> const& node,
             assert(!stack.empty());
             if (child->isLeaf())
             {
-                auto n = std::static_pointer_cast<SHAMapTreeNode>(child);
-                stack.push({n, {64, n->peekItem()->key()}});
-                return n;
+                auto leaf = std::static_pointer_cast<SHAMapTreeNode>(child);
+                stack.emplace(std::move(inner), SHAMapNodeID{64, leaf->peekItem()->key()});
+                return leaf;
             }
-            inner = std::static_pointer_cast<SHAMapInnerNode>(std::move(child));
+            inner = std::static_pointer_cast<SHAMapInnerNode>(child);
             if (is_v2())
             {
-                auto inner2 = std::static_pointer_cast<SHAMapInnerNodeV2>(inner);
-                stack.push({inner2, {inner2->depth(), inner2->common()}});
+                auto inner2 = static_cast<SHAMapInnerNodeV2*>(inner.get());
+                stack.emplace(inner, SHAMapNodeID{inner2->depth(), inner2->common()});
             }
             else
             {
-                stack.push({inner, stack.top().second.getChildNodeID(branch)});
+                stack.emplace(inner, stack.top().second.getChildNodeID(branch));
             }
             i = 0;  // scan all 16 branches of this new node
         }
