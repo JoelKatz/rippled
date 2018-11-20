@@ -624,7 +624,7 @@ SHAMap::peekNextItem(uint256 const& id,
     stack.pop();
     while (!stack.empty())
     {
-        auto node = std::move (stack.top().first);
+        auto node = stack.top().first;
         auto nodeID = stack.top().second;
         assert(!node->isLeaf());
         auto inner = std::static_pointer_cast<SHAMapInnerNode>(node);
@@ -655,6 +655,8 @@ SHAMap::peekNextItem(uint256 const& id,
                 p->unPin (pinStack);
             }
         }
+
+        stack.pop();
     }
     // must be last item
     return nullptr;
