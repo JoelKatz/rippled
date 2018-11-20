@@ -642,7 +642,9 @@ SHAMap::peekNextItem(uint256 const& id, SharedPtrNodeStack& stack) const
         if (backed_ && (state_ == SHAMapState::Immutable))
         {
             std::stack<std::shared_ptr<SHAMapInnerNode>> stack;
+
             inner->unPin (stack);
+
             while (! stack.empty ())
             {
                 auto p = std::move (stack.top());
@@ -740,17 +742,7 @@ SHAMap::upper_bound(uint256 const& id) const
                 }
             }
         }
-        if (backed_ && SHAMapState::Immutable)
-        {
-            std::stack<std::shared_ptr<SHAMapInnerNode>> stack;
-            inner->unPin (stack);
-            while (! stack.empty ())
-            {
-                auto p = std::move (stack.top());
-                stack.pop();
-                p->unPin (stack);
-            }
-        }
+        stack.pop();
     }
     return end();
 }
@@ -1150,7 +1142,7 @@ void SHAMap::unPin ()
     // Release strong pointers between nodes
     std::stack<std::shared_ptr<SHAMapInnerNode>> stack;
 
-    if (backed_ && SHAMapState::Immutable)
+    if (backed_ && (state_ == SHAMapState::Immutable))
         std::dynamic_pointer_cast<SHAMapInnerNode>(root_)->unPin (stack);
 
     while (! stack.empty())

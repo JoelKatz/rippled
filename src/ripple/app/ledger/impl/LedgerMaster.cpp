@@ -1826,6 +1826,8 @@ void LedgerMaster::doAdvance (ScopedLockType& sl)
                     app_.getOPs().pubLedger(ledger);
                 }
             }
+            if (! pubLedgers.empty())
+                pubLedgers.front()->unPin();
 
             app_.getOPs().clearNeedNetworkLedger();
             progress = newPFWork ("pf:newLedger", sl);
