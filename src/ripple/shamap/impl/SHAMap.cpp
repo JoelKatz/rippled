@@ -1148,13 +1148,18 @@ void SHAMap::unPin ()
     std::stack<std::shared_ptr<SHAMapInnerNode>> stack;
 
     if (backed_ && (state_ == SHAMapState::Immutable))
-        std::dynamic_pointer_cast<SHAMapInnerNode>(root_)->unPin (stack);
-
-    while (! stack.empty())
     {
-        auto p = std::move(stack.top());
-        stack.pop();
-        p->unPin (stack);
+        std::dynamic_pointer_cast<SHAMapInnerNode>(root_)->unPin (stack);
+        int c = 1;
+
+        while (! stack.empty())
+        {
+            auto p = std::move(stack.top());
+            stack.pop();
+            p->unPin (stack);
+            ++c;
+        }
+        std::cout << c << " nodes unpinned" << std::endl;
     }
 }
 

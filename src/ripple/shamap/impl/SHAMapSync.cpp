@@ -240,7 +240,17 @@ void SHAMap::gmn_ProcessNodes (MissingNodes& mn, MissingNodes::StackEntry& se)
     { // No partial node encountered below this node
         node->setFullBelowGen (mn.generation_);
         if (backed_)
+        {
+            std::stack<std::shared_ptr<SHAMapInnerNode>> stack;
+            node->unPin(stack);
+            while (! stack.empty())
+            {
+                auto t = std::move (stack.top());
+                stack.pop();
+                t->unPin(stack);
+            }
             f_.fullbelow().insert (node->getNodeHash ().as_uint256());
+        }
     }
 
     node = nullptr;
@@ -357,7 +367,7 @@ SHAMap::getMissingNodes(int max, SHAMapSyncFilter* filter)
                 // Pick up where we left off with this node's parent
                 bool was = fullBelow; // was full below
 
-                pos = mn.stack_.top();
+                pos = std::move (mn.stack_.top());
                 mn.stack_.pop ();
                 if (nextChild == 0)
                 {
