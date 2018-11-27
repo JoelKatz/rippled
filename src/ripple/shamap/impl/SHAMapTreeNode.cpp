@@ -719,7 +719,7 @@ void SHAMapInnerNode::unPin(std::stack<std::shared_ptr<SHAMapInnerNode>> &stack)
 
     for (auto pos = 0; pos < 16; ++pos)
     {
-        if (mChildren[pos] != nullptr)
+        if ((mChildren[pos] != nullptr) && (mChildren[pos]->getSeq() == 0))
         {
             if (mChildren[pos]->isInner())
                 stack.emplace (std::dynamic_pointer_cast<SHAMapInnerNode>(

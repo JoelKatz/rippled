@@ -73,6 +73,7 @@ SHAMap::snapShot (bool isMutable) const
     newMap.ledgerSeq_ = ledgerSeq_;
     newMap.root_ = root_;
     newMap.backed_ = backed_;
+    newMap.trim_ = trim_;
 
     if ((state_ != SHAMapState::Immutable) || !isMutable)
     {
@@ -1147,7 +1148,7 @@ void SHAMap::unPin ()
     // Release strong pointers between nodes
     std::stack<std::shared_ptr<SHAMapInnerNode>> stack;
 
-    if (trim_)
+    if (trim_ && backed_)
     {
         std::dynamic_pointer_cast<SHAMapInnerNode>(root_)->unPin (stack);
         int c = 1;
@@ -1352,7 +1353,11 @@ SHAMap::canonicalize(SHAMapHash const& hash, std::shared_ptr<SHAMapAbstractNode>
     assert (node->getSeq() == 0);
     assert (node->getNodeHash() == hash);
 
+    if (node->getSeq() != 0) // TEMPORARY FIXME REMOVEME
+        throw("ouch");
     f_.treecache().canonicalize (hash.as_uint256(), node);
+    if (node->getSeq() != 0) // TEMPORARY FIXME REMOVEME
+        throw("ouch");
 }
 
 SHAMap::version
