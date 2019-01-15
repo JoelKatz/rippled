@@ -161,7 +161,8 @@ public:
         m_misses = 0;
     }
 
-    void visit (std::function< void (std::shared_ptr<T> const&, bool) > func)
+    void visit (std::function<
+        void (const key_type&, std::shared_ptr<T> &, bool) > func)
     {
         // visit every entry in the cache
         // visitor function is called with the cache locked
@@ -169,15 +170,15 @@ public:
 
         lock_guard lock (m_mutex);
 
-        for (cache_iterator cit = m_cache.begin (); cit != m_cache.end(); ++cit)
+        for (cache_iterator cit : m_cache)
         {
             if (cit->second.isWeak())
             {
                 if (auto obj = cit->second.lock())
-                    func (obj, false);
+                    func (cit->first, obj, false);
             }
             else
-                func (cit->second.ptr, true);
+                func (cit->first, cit->second.ptr, true);
         }
     }
 
