@@ -161,6 +161,26 @@ public:
         m_misses = 0;
     }
 
+    void visit (std::function< void (std::shared_ptr<T> const&, bool) > func)
+    {
+        // visit every entry in the cache
+        // visitor function is called with the cache locked
+        // bool is true if object is strongly cached
+
+        lock_guard lock (m_mutex);
+
+        for (cache_iterator cit = m_cache.begin (); cit != m_cache.end(); ++cit)
+        {
+            if (cit->second.isWeak())
+            {
+                if (auto obj = cit->second.lock())
+                    func (obj, false);
+            }
+            else
+                func (cit->second.ptr, true);
+        }
+    }
+
     void sweep ()
     {
         int cacheRemovals = 0;
