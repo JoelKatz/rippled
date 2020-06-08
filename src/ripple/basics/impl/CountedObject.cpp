@@ -65,6 +65,38 @@ CountedObjects::getCounts(int minimumThreshold) const
     return counts;
 }
 
+CountedObjects::List
+CountedObjects::getKB(int minimumThreshold) const
+{
+    List counts;
+
+    // When other operations are concurrent, the count
+    // might be temporarily less than the actual count.
+    int const count = m_count.load();
+
+    counts.reserve(count);
+
+    CounterBase* counter = m_head.load();
+
+    while (counter != nullptr)
+    {
+        int count = static_cast <int> (counter->getCount() / 1024);
+        if (count >= minimumThreshold)
+        {
+            Entry entry;
+
+            entry.first = counter->getName();
+            entry.second = count;
+
+            counts.push_back(entry);
+        }
+
+        counter = counter->getNext();
+    }
+
+    return counts;
+}
+
 //------------------------------------------------------------------------------
 
 CountedObjects::CounterBase::CounterBase() noexcept : m_count(0)

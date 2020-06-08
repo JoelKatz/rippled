@@ -25,7 +25,8 @@
 namespace ripple {
 
 STArray::STArray(STArray&& other)
-    : STBase(other.getFName()), v_(std::move(other.v_))
+    : STBase(other.getFName()), v_(std::move(other.v_)),
+      STArray::CountedObject(other.STArray::CountedObject::getBytes())
 {
 }
 
@@ -34,19 +35,20 @@ STArray::operator=(STArray&& other)
 {
     setFName(other.getFName());
     v_ = std::move(other.v_);
+    STArray::CountedObject.setBytes(other.STArray::CountedObject::getBytes());
     return *this;
 }
 
-STArray::STArray(int n)
+STArray::STArray(int n), STArray::CountedObject(sizeof STArray + n * sizeof (STObject))
 {
     v_.reserve(n);
 }
 
-STArray::STArray(SField const& f) : STBase(f)
+STArray::STArray(SField const& f) : STBase(f), STArray::CountedObject(sizeof STArray)
 {
 }
 
-STArray::STArray(SField const& f, int n) : STBase(f)
+STArray::STArray(SField const& f, int n) : STBase(f), STArray::CountedObject(sizeof STObject)
 {
     v_.reserve(n);
 }

@@ -63,7 +63,7 @@ STTx::STTx(STObject&& object) noexcept(false) : STObject(std::move(object))
     tid_ = getHash(HashPrefix::transactionID);
 }
 
-STTx::STTx(SerialIter& sit) noexcept(false) : STObject(sfTransaction)
+STTx::STTx(SerialIter& sit) noexcept(false) : STObject(sfTransaction), CountedObject(sizeof STTx)
 {
     int length = sit.getBytesLeft();
 
@@ -80,7 +80,7 @@ STTx::STTx(SerialIter& sit) noexcept(false) : STObject(sfTransaction)
 }
 
 STTx::STTx(TxType type, std::function<void(STObject&)> assembler)
-    : STObject(sfTransaction)
+    : STObject(sfTransaction), CountedObject(sizeof STTx)
 {
     auto format = getTxFormat(type);
 

@@ -40,6 +40,9 @@ public:
     List
     getCounts(int minimumThreshold) const;
 
+    List
+    getKB(int minimumThreshold) const;
+
 public:
     /** Implementation for @ref CountedObject.
 
@@ -64,10 +67,26 @@ public:
             return --m_count;
         }
 
+        void incBytes (int b) noexcept
+        {
+            m_bytes += b;
+        }
+
+        void decBytes (int b) noexcept
+        {
+            m_bytes -= b;
+        }
+
         int
         getCount() const noexcept
         {
             return m_count.load();
+        }
+
+        int
+        getBytes() const noexcept
+        {
+            return m_bytes.load();
         }
 
         CounterBase*
@@ -85,6 +104,7 @@ public:
 
     protected:
         std::atomic<int> m_count;
+        std::atomic<unsigned long int> m_bytes;
         CounterBase* m_next;
     };
 
@@ -109,23 +129,50 @@ private:
 template <class Object>
 class CountedObject
 {
+private:
+        int m_bytes;
+
 public:
-    CountedObject() noexcept
+    CountedObject(int size) noexcept : m_bytes(size)
     {
-        getCounter().increment();
+        auto& counter = getCounter();
+        counter.increment();
+        counter.incBytes (m_bytes);
     }
 
-    CountedObject(CountedObject const&) noexcept
+    CountedObject(CountedObject const& o) noexcept : m_bytes (o.m_bytes)
     {
-        getCounter().increment();
+        auto& counter = getCounter();
+        counter.increment();
+        counter.incBytes (m_bytes);
     }
 
     CountedObject&
-    operator=(CountedObject const&) noexcept = default;
+    operator=(CountedObject const& o) noexcept
+    {
+        changeSize (o.m_bytes);
+        return *this;
+    }
+
+    void changeSize (int size) noexcept
+    {
+        if (size > m_bytes)
+            getCounter().incBytes (size - m_bytes);
+        else if (size < m_bytes)
+            getCounter().decBytes (m_bytes - size);
+        m_bytes = size;
+    }
+
+    int getBytes() noexcept
+    {
+        return m_bytes;
+    }
 
     ~CountedObject() noexcept
     {
-        getCounter().decrement();
+        auto& counter = getCounter();
+        counter.decrement();
+        counter.decBytes (m_bytes);
     }
 
 private:

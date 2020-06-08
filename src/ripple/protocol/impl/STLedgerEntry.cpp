@@ -29,7 +29,7 @@
 namespace ripple {
 
 STLedgerEntry::STLedgerEntry(Keylet const& k)
-    : STObject(sfLedgerEntry), key_(k.key), type_(k.type)
+    : STObject(sfLedgerEntry), key_(k.key), type_(k.type), STLedgerEntry::CountedObject(sizeof STLedgerEntry)
 {
     if (!(0u <= type_ &&
           type_ <= std::min<unsigned>(
@@ -48,14 +48,14 @@ STLedgerEntry::STLedgerEntry(Keylet const& k)
 }
 
 STLedgerEntry::STLedgerEntry(SerialIter& sit, uint256 const& index)
-    : STObject(sfLedgerEntry), key_(index)
+    : STObject(sfLedgerEntry), key_(index), STLedgerEntry::CountedObject(sizeof STLedgerEntry)
 {
     set(sit);
     setSLEType();
 }
 
 STLedgerEntry::STLedgerEntry(STObject const& object, uint256 const& index)
-    : STObject(object), key_(index)
+    : STObject(object), key_(index), STLedgerEntry::CountedObject(sizeof STLedgerEntry)
 {
     setSLEType();
 }
