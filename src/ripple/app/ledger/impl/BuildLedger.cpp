@@ -63,18 +63,33 @@ buildLedgerImpl(
     }
 
     built->updateSkipList();
-    {
-        // Write the final version of all modified SHAMap
-        // nodes to the node store to preserve the new LCL
 
-        int const asf =
-            built->stateMap().flushDirty(hotACCOUNT_NODE, built->info().seq);
-        int const tmf =
-            built->txMap().flushDirty(hotTRANSACTION_NODE, built->info().seq);
-        JLOG(j.debug()) << "Flushed " << asf << " accounts and " << tmf
-                        << " transaction nodes";
+    {
+        struct timespec before, after;
+        clock_gettime(CLOCK_MONOTONIC, &before);
+        int nodes = 0;
+
+        {
+            // Write the final version of all modified SHAMap
+            // nodes to the node store to preserve the new LCL
+
+            int const asf =
+                built->stateMap().flushDirty(hotACCOUNT_NODE, built->info().seq);
+            int const tmf =
+                built->txMap().flushDirty(hotTRANSACTION_NODE, built->info().seq);
+            nodes = asf + tmf;
+            JLOG(j.debug()) << "Flushed " << asf << " accounts and " << tmf
+                            << " transaction nodes";
+        }
+
+        built->unshare();
+
+        clock_gettime(CLOCK_MONOTONIC, &after);
+        double ms = 1000.0 * (after.tv_sec - before.tv_sec);
+        ms += after.tv_nsec / 1000000.0;
+        ms -= before.tv_nsec / 1000000.0;
+        JLOG(j.fatal()) << "Unshare time: " << ms << " ms, nodes " << nodes;
     }
-    built->unshare();
 
     // Accept ledger
     built->setAccepted(
@@ -105,6 +120,10 @@ applyTransactions(
     bool certainRetry = true;
     std::size_t count = 0;
 
+    int applications = 0, successes = 0, failures = 0, retries = 0;
+    struct timespec before, after;
+    clock_gettime(CLOCK_MONOTONIC, &before);
+
     // Attempt to apply all of the retriable transactions
     for (int pass = 0; pass < LEDGER_TOTAL_PASSES; ++pass)
     {
@@ -126,20 +145,24 @@ applyTransactions(
                     continue;
                 }
 
+                ++applications;
                 switch (applyTransaction(
                     app, view, *it->second, certainRetry, tapNONE, j))
                 {
                     case ApplyResult::Success:
+                        ++successes;
                         it = txns.erase(it);
                         ++changes;
                         break;
 
                     case ApplyResult::Fail:
+                        ++failures;
                         failed.insert(txid);
                         it = txns.erase(it);
                         break;
 
                     case ApplyResult::Retry:
+                        ++retries;
                         ++it;
                 }
             }
@@ -148,6 +171,7 @@ applyTransactions(
                 JLOG(j.warn()) << "Transaction " << txid << " throws";
                 failed.insert(txid);
                 it = txns.erase(it);
+                ++failures;
             }
         }
 
@@ -165,6 +189,14 @@ applyTransactions(
         if (!changes || (pass >= LEDGER_RETRY_PASSES))
             certainRetry = false;
     }
+
+    clock_gettime(CLOCK_MONOTONIC, &after);
+    double ms = 1000.0 * (after.tv_sec - before.tv_sec);
+    ms += after.tv_nsec / 1000000.0;
+    ms -= before.tv_nsec / 1000000.0;
+    JLOG(j.fatal()) << "txn time: " << ms << " ms, " <<
+        applications << " executions, " << successes << " successes, " <<
+        failures << " failures, and " << retries << " retries";
 
     // If there are any transactions left, we must have
     // tried them in at least one final pass
