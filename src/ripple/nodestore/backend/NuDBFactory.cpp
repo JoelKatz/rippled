@@ -273,7 +273,8 @@ public:
     int
     getWriteLoad() override
     {
-        return 0;
+        auto s = db_.get_stats();
+        return s.objects + s.objects_ip;
     }
 
     void
