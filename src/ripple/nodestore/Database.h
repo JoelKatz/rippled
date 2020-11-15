@@ -293,6 +293,7 @@ private:
     uint256 readLastHash_;
 
     std::vector<std::thread> readThreads_;
+    int readsInProgress_;
     bool readShut_{false};
 
     // current read generation

@@ -42,6 +42,7 @@ Database::Database(
     if (earliestLedgerSeq_ < 1)
         Throw<std::runtime_error>("Invalid earliest_seq");
 
+    readsInProgress_ = readThreads;
     while (readThreads-- > 0)
         readThreads_.emplace_back(&Database::threadEntry, this);
 }
@@ -71,8 +72,9 @@ Database::waitReads()
     // even started. So when you reach generation N+2,
     // you know the request is done.
     std::uint64_t const wakeGen = readGen_ + 2;
-    while (!readShut_ && !read_.empty() && (readGen_ < wakeGen))
-        readGenCondVar_.wait(lock);
+    while (!readShut_ && (!read_.empty() || readsInProgress_)
+        && (readGen_ < wakeGen))
+            readGenCondVar_.wait(lock);
 }
 
 void
@@ -301,9 +303,13 @@ Database::threadEntry()
             std::unique_lock<std::mutex> lock(readLock_);
             while (!readShut_ && read_.empty())
             {
-                // All work is done
-                readGenCondVar_.notify_all();
+                if (--readsInProgress_ == 0)
+                {
+                    ++readGen_;
+                    readGenCondVar_.notify_all();
+                }
                 readCondVar_.wait(lock);
+                ++readsInProgress_;
             }
             if (readShut_)
                 break;
