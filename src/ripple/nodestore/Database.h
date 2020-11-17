@@ -135,20 +135,22 @@ public:
         If I/O is required to determine whether or not the object is present,
         `false` is returned. Otherwise, `true` is returned and `object` is set
         to refer to the object, or `nullptr` if the object is not present.
-        If I/O is required, the I/O is scheduled.
+        If I/O is required, the I/O is scheduled and `true` is returned
 
         @note This can be called concurrently.
         @param hash The key of the object to retrieve
         @param ledgerSeq The sequence of the ledger where the
                 object is stored, used by the shard store.
         @param nodeObject The object retrieved
-        @return Whether the operation completed
+        @param callback Callback function when read completes
+        @return true if the operation completed, false if pending
     */
     virtual bool
     asyncFetch(
         uint256 const& hash,
         std::uint32_t ledgerSeq,
-        std::shared_ptr<NodeObject>& nodeObject) = 0;
+        std::shared_ptr<NodeObject>& nodeObject,
+        std::function<void(std::shared_ptr<NodeObject>&)>&& callback) = 0;
 
     /** Store a ledger from a different database.
 
@@ -157,11 +159,6 @@ public:
     */
     virtual bool
     storeLedger(std::shared_ptr<Ledger const> const& srcLedger) = 0;
-
-    /** Wait for all currently pending async reads to complete.
-     */
-    void
-    waitReads();
 
     /** Get the maximum number of async reads the node store prefers.
 
@@ -285,19 +282,20 @@ private:
 
     std::mutex readLock_;
     std::condition_variable readCondVar_;
-    std::condition_variable readGenCondVar_;
 
     // reads to do
-    std::map<uint256, std::uint32_t> read_;
+    std::map<
+        uint256,
+        std::vector<std::pair<
+            std::uint32_t,
+            std::function<void(std::shared_ptr<NodeObject>&)>>>>
+        read_;
 
     // last read
     uint256 readLastHash_;
 
     std::vector<std::thread> readThreads_;
     bool readShut_{false};
-
-    // current read generation
-    uint64_t readGen_{0};
 
     // The default is 32570 to match the XRP ledger network's earliest
     // allowed sequence. Alternate networks may set this value.

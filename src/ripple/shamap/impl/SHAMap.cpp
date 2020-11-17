@@ -162,33 +162,39 @@ SHAMap::findKey(uint256 const& id) const
 std::shared_ptr<SHAMapTreeNode>
 SHAMap::fetchNodeFromDB(SHAMapHash const& hash) const
 {
-    std::shared_ptr<SHAMapTreeNode> node;
+    assert(backed_);
+    auto obj = f_.db().fetchNodeObject(hash.as_uint256(), ledgerSeq_);
+    return finishFetch(hash, obj);
+}
 
-    if (backed_)
+std::shared_ptr<SHAMapTreeNode>
+SHAMap::finishFetch(SHAMapHash const& hash, std::shared_ptr<NodeObject>& object)
+    const
+{
+    assert(backed_);
+    if (!object)
     {
-        if (auto nodeObject =
-                f_.db().fetchNodeObject(hash.as_uint256(), ledgerSeq_))
-        {
-            try
-            {
-                node = SHAMapTreeNode::makeFromPrefix(
-                    makeSlice(nodeObject->getData()), hash);
-                if (node)
-                    canonicalize(hash, node);
-            }
-            catch (std::exception const&)
-            {
-                JLOG(journal_.warn()) << "Invalid DB node " << hash;
-                return std::shared_ptr<SHAMapLeafNode>();
-            }
-        }
-        else if (full_)
+        if (full_)
         {
             full_ = false;
             f_.missingNode(ledgerSeq_);
         }
+        return {};
     }
 
+    std::shared_ptr<SHAMapTreeNode> node;
+    try
+    {
+        node =
+            SHAMapTreeNode::makeFromPrefix(makeSlice(object->getData()), hash);
+        if (node)
+            canonicalize(hash, node);
+    }
+    catch (std::exception const&)
+    {
+        JLOG(journal_.warn()) << "Invalid DB node " << hash;
+        return std::shared_ptr<SHAMapTreeNode>();
+    }
     return node;
 }
 
@@ -374,7 +380,8 @@ SHAMap::descendAsync(
     SHAMapInnerNode* parent,
     int branch,
     SHAMapSyncFilter* filter,
-    bool& pending) const
+    bool& pending,
+    descendCallback&& callback) const
 {
     pending = false;
 
@@ -392,19 +399,31 @@ SHAMap::descendAsync(
 
         if (!ptr && backed_)
         {
-            std::shared_ptr<NodeObject> obj;
-            if (!f_.db().asyncFetch(hash.as_uint256(), ledgerSeq_, obj))
+            std::shared_ptr<NodeObject> object;
+            if (f_.db().asyncFetch(
+                    hash.as_uint256(),
+                    ledgerSeq_,
+                    object,
+                    [this, hash, cb{std::move(callback)}](
+                        std::shared_ptr<NodeObject>& object) {
+                        auto node = finishFetch(hash, object);
+                        cb(node, hash);
+                    }))
+            {
+                // completed immediately
+                if (!object)
+                    return nullptr;
+
+                ptr = SHAMapTreeNode::makeFromPrefix(
+                    makeSlice(object->getData()), hash);
+                if (ptr)
+                    canonicalize(hash, ptr);
+            }
+            else
             {
                 pending = true;
                 return nullptr;
             }
-            if (!obj)
-                return nullptr;
-
-            ptr =
-                SHAMapTreeNode::makeFromPrefix(makeSlice(obj->getData()), hash);
-            if (ptr && backed_)
-                canonicalize(hash, ptr);
         }
     }
 
