@@ -322,7 +322,7 @@ SHAMap::getMissingNodes(int max, SHAMapSyncFilter* filter)
     MissingNodes mn(
         max,
         filter,
-        4096,   // number of async reads per pass
+        4096,  // number of async reads per pass
         f_.getFullBelowCache(ledgerSeq_)->getGeneration());
 
     if (!root_->isInner() ||
