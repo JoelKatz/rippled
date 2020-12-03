@@ -512,8 +512,9 @@ private:
 
     // fetch from DB helper function
     std::shared_ptr<SHAMapTreeNode>
-    finishFetch(SHAMapHash const& hash, std::shared_ptr<NodeObject>& object)
-        const;
+    finishFetch(
+        SHAMapHash const& hash,
+        std::shared_ptr<NodeObject> const& object) const;
 };
 
 inline void
