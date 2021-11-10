@@ -163,7 +163,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a0c5c39eaca76602521060995bb2cb0d0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classripple_1_1test_1_1ManualTimeKeeper.html">ManualTimeKeeper</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1test_1_1jtx_1_1Env.html#a0c5c39eaca76602521060995bb2cb0d0">timeKeeper</a> ()</td></tr>
 <tr class="separator:a0c5c39eaca76602521060995bb2cb0d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb1c9d82d157da3b4f05b7f3756058e4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classripple_1_1NetClock.html#a4c2428e178dca6689fa3fb4be0657107">NetClock::time_point</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1test_1_1jtx_1_1Env.html#acb1c9d82d157da3b4f05b7f3756058e4">now</a> ()</td></tr>
-<tr class="memdesc:acb1c9d82d157da3b4f05b7f3756058e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the current Ripple <a class="el" href="classripple_1_1test_1_1Network.html">Network</a> Time.  <a href="classripple_1_1test_1_1jtx_1_1Env.html#acb1c9d82d157da3b4f05b7f3756058e4">More...</a><br /></td></tr>
+<tr class="memdesc:acb1c9d82d157da3b4f05b7f3756058e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the current network time.  <a href="classripple_1_1test_1_1jtx_1_1Env.html#acb1c9d82d157da3b4f05b7f3756058e4">More...</a><br /></td></tr>
 <tr class="separator:acb1c9d82d157da3b4f05b7f3756058e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a25f505154c5c666c4ebac0a382744754"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classripple_1_1test_1_1AbstractClient.html">AbstractClient</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1test_1_1jtx_1_1Env.html#a25f505154c5c666c4ebac0a382744754">client</a> ()</td></tr>
 <tr class="memdesc:a25f505154c5c666c4ebac0a382744754"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the connected client.  <a href="classripple_1_1test_1_1jtx_1_1Env.html#a25f505154c5c666c4ebac0a382744754">More...</a><br /></td></tr>
@@ -181,9 +181,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae449949223905ec9bd5b8dbc1c9e9ded"><td class="memItemLeft" align="right" valign="top"><a class="elRef" href="http://en.cppreference.com/w/cpp/memory/shared_ptr.html">std::shared_ptr</a>&lt; <a class="el" href="classripple_1_1ReadView.html">ReadView</a> const  &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1test_1_1jtx_1_1Env.html#ae449949223905ec9bd5b8dbc1c9e9ded">closed</a> ()</td></tr>
 <tr class="memdesc:ae449949223905ec9bd5b8dbc1c9e9ded"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the last closed ledger.  <a href="classripple_1_1test_1_1jtx_1_1Env.html#ae449949223905ec9bd5b8dbc1c9e9ded">More...</a><br /></td></tr>
 <tr class="separator:ae449949223905ec9bd5b8dbc1c9e9ded"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2c5dcd5bbad5c5b767ff713b6f7cb1ed"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1test_1_1jtx_1_1Env.html#a2c5dcd5bbad5c5b767ff713b6f7cb1ed">close</a> (<a class="el" href="classripple_1_1NetClock.html#a4c2428e178dca6689fa3fb4be0657107">NetClock::time_point</a> closeTime, boost::optional&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/chrono/duration.html">std::chrono::milliseconds</a> &gt; consensusDelay=boost::none)</td></tr>
-<tr class="memdesc:a2c5dcd5bbad5c5b767ff713b6f7cb1ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close and advance the ledger.  <a href="classripple_1_1test_1_1jtx_1_1Env.html#a2c5dcd5bbad5c5b767ff713b6f7cb1ed">More...</a><br /></td></tr>
-<tr class="separator:a2c5dcd5bbad5c5b767ff713b6f7cb1ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69095691c9bcfab1f3d69c645f2dbe33"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1test_1_1jtx_1_1Env.html#a69095691c9bcfab1f3d69c645f2dbe33">close</a> (<a class="el" href="classripple_1_1NetClock.html#a4c2428e178dca6689fa3fb4be0657107">NetClock::time_point</a> closeTime, <a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/chrono/duration.html">std::chrono::milliseconds</a> &gt; consensusDelay=std::nullopt)</td></tr>
+<tr class="memdesc:a69095691c9bcfab1f3d69c645f2dbe33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close and advance the ledger.  <a href="classripple_1_1test_1_1jtx_1_1Env.html#a69095691c9bcfab1f3d69c645f2dbe33">More...</a><br /></td></tr>
+<tr class="separator:a69095691c9bcfab1f3d69c645f2dbe33"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d23c4539fe2b11e87ef6f9dd0eddf77"><td class="memTemplParams" colspan="2">template&lt;class Rep , class Period &gt; </td></tr>
 <tr class="memitem:a4d23c4539fe2b11e87ef6f9dd0eddf77"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classripple_1_1test_1_1jtx_1_1Env.html#a4d23c4539fe2b11e87ef6f9dd0eddf77">close</a> (<a class="elRef" href="http://en.cppreference.com/w/cpp/chrono/duration.html">std::chrono::duration</a>&lt; Rep, Period &gt; const &amp;elapsed)</td></tr>
 <tr class="memdesc:a4d23c4539fe2b11e87ef6f9dd0eddf77"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close and advance the ledger.  <a href="classripple_1_1test_1_1jtx_1_1Env.html#a4d23c4539fe2b11e87ef6f9dd0eddf77">More...</a><br /></td></tr>
@@ -340,7 +340,7 @@ Private Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A transaction testing environment. </p>
 
-<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00115">115</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00116">116</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a4029a86b27b695056a12088f2f61c761"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4029a86b27b695056a12088f2f61c761">&#9670;&nbsp;</a></span>Env() <span class="overload">[1/6]</span></h2>
@@ -448,7 +448,7 @@ Private Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00165">165</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00166">166</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
 
 </div>
 </div>
@@ -488,7 +488,7 @@ Private Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00195">195</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00196">196</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
 
 </div>
 </div>
@@ -540,7 +540,7 @@ Private Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00212">212</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00213">213</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
 
 </div>
 </div>
@@ -569,7 +569,7 @@ Private Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00233">233</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00234">234</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
 
 </div>
 </div>
@@ -640,7 +640,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00240">240</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00241">241</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
 
 </div>
 </div>
@@ -659,7 +659,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00246">246</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00247">247</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
 
 </div>
 </div>
@@ -678,7 +678,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00252">252</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00253">253</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
 
 </div>
 </div>
@@ -697,10 +697,10 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Returns the current Ripple <a class="el" href="classripple_1_1test_1_1Network.html">Network</a> Time. </p>
+<p>Returns the current network time. </p>
 <dl class="section note"><dt>Note</dt><dd>This is manually advanced when ledgers close or by callers. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00263">263</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00264">264</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
 
 </div>
 </div>
@@ -721,7 +721,7 @@ Private Attributes</h2></td></tr>
 
 <p>Returns the connected client. </p>
 
-<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00270">270</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00271">271</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
 
 </div>
 </div>
@@ -816,7 +816,7 @@ template&lt;class... Args&gt; </div>
 <p>Returns the current ledger. </p>
 <p>This is a non-modifiable snapshot of the open ledger at the moment of the call. Transactions applied after the call to open() will not be visible. </p>
 
-<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00299">299</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00300">300</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
 
 </div>
 </div>
@@ -842,8 +842,8 @@ template&lt;class... Args&gt; </div>
 
 </div>
 </div>
-<a id="a2c5dcd5bbad5c5b767ff713b6f7cb1ed"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2c5dcd5bbad5c5b767ff713b6f7cb1ed">&#9670;&nbsp;</a></span>close() <span class="overload">[1/3]</span></h2>
+<a id="a69095691c9bcfab1f3d69c645f2dbe33"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69095691c9bcfab1f3d69c645f2dbe33">&#9670;&nbsp;</a></span>close() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -857,8 +857,8 @@ template&lt;class... Args&gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">boost::optional&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/chrono/duration.html">std::chrono::milliseconds</a> &gt;&#160;</td>
-          <td class="paramname"><em>consensusDelay</em> = <code>boost::none</code>&#160;</td>
+          <td class="paramtype"><a class="elRef" href="http://en.cppreference.com/w/cpp/utility/optional.html">std::optional</a>&lt; <a class="elRef" href="http://en.cppreference.com/w/cpp/chrono/duration.html">std::chrono::milliseconds</a> &gt;&#160;</td>
+          <td class="paramname"><em>consensusDelay</em> = <code>std::nullopt</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1016,7 +1016,7 @@ template&lt;class Rep , class Period &gt; </div>
 
 <p>Associate AccountID with account. </p>
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00150">150</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00156">156</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1038,7 +1038,7 @@ template&lt;class Rep , class Period &gt; </div>
 
 <p>Returns the <a class="el" href="classripple_1_1test_1_1jtx_1_1Account.html" title="Immutable cryptographic account descriptor.">Account</a> given the AccountID. </p>
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00156">156</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00162">162</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1058,7 +1058,7 @@ template&lt;class Rep , class Period &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00165">165</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00171">171</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1081,7 +1081,7 @@ template&lt;class Rep , class Period &gt; </div>
 <p>Returns the XRP balance on an account. </p>
 <p>Returns 0 if the account does not exist. </p>
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00174">174</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00180">180</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1104,7 +1104,7 @@ template&lt;class Rep , class Period &gt; </div>
 <p>Returns the next sequence number on account. </p>
 <p>Exceptions: Throws if the account does not exist </p>
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00198">198</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00204">204</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1137,7 +1137,7 @@ template&lt;class Rep , class Period &gt; </div>
 <p>Return the balance on an account. </p>
 <p>Returns 0 if the trust line does not exist. </p>
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00183">183</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00189">189</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1160,7 +1160,7 @@ template&lt;class Rep , class Period &gt; </div>
 <p>Return an account root. </p>
 <dl class="section return"><dt>Returns</dt><dd>empty if the account does not exist. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00207">207</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00213">213</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1183,7 +1183,7 @@ template&lt;class Rep , class Period &gt; </div>
 <p>Return a ledger entry. </p>
 <dl class="section return"><dt>Returns</dt><dd>empty if the ledger entry does not exist </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00213">213</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00219">219</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1307,7 +1307,7 @@ template&lt;class... Args&gt; </div>
 
 <p>Gets the TER result and <code>didApply</code> flag from a <a class="el" href="namespaceripple_1_1RPC.html">RPC</a> <a class="el" href="namespaceJson.html" title="JSON (JavaScript Object Notation).">Json</a> result object. </p>
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00267">267</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00273">273</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1338,7 +1338,7 @@ template&lt;class... Args&gt; </div>
 <p>Submit an existing <a class="el" href="structripple_1_1test_1_1jtx_1_1JTx.html" title="Execution context for applying a JSON transaction.">JTx</a>. </p>
 <p>This calls postconditions. </p>
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00279">279</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00285">285</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1371,7 +1371,7 @@ template&lt;class... Args&gt; </div>
 <p>Use the submit <a class="el" href="namespaceripple_1_1RPC.html">RPC</a> command with a provided <a class="el" href="structripple_1_1test_1_1jtx_1_1JTx.html" title="Execution context for applying a JSON transaction.">JTx</a> object. </p>
 <p>This calls postconditions. </p>
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00302">302</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00308">308</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1409,7 +1409,7 @@ template&lt;class... Args&gt; </div>
 
 <p>Check expected postconditions of <a class="el" href="structripple_1_1test_1_1jtx_1_1JTx.html" title="Execution context for applying a JSON transaction.">JTx</a> submission. </p>
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00340">340</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00346">346</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1520,7 +1520,7 @@ template&lt;class JsonValue , class... FN&gt; </div>
 to close(). The metadata for the last
 transaction ID, if any, is returned.
 </pre> 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00364">364</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00371">371</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1545,7 +1545,7 @@ ID, if any, is returned. No side
 effects.
 </pre><dl class="section note"><dt>Note</dt><dd>Only necessary for <a class="el" href="structripple_1_1test_1_1jtx_1_1JTx.html" title="Execution context for applying a JSON transaction.">JTx</a> submitted with via sign-and-submit method. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00372">372</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00379">379</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1565,7 +1565,7 @@ effects.
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00455">455</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00462">462</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1609,7 +1609,7 @@ effects.
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00219">219</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00225">225</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1775,7 +1775,7 @@ template&lt;class Arg , class... Args&gt; </div>
 <p>Effects: A trust line is added for the account. The account's sequence number is incremented. The account is refunded for the transaction fee to set the trust line.</p>
 <p>The refund comes from the master account. </p>
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00250">250</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00256">256</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1857,7 +1857,7 @@ template&lt;class... Accounts&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00447">447</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00454">454</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1885,7 +1885,7 @@ template&lt;class... Accounts&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00378">378</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00385">385</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1913,7 +1913,7 @@ template&lt;class... Accounts&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00401">401</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00408">408</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -1944,7 +1944,7 @@ template&lt;class... Accounts&gt; </div>
 <p>Create a <a class="el" href="classripple_1_1STTx.html">STTx</a> from a <a class="el" href="structripple_1_1test_1_1jtx_1_1JTx.html" title="Execution context for applying a JSON transaction.">JTx</a> The framework requires that JSON is valid. </p>
 <p>On a parse error, the JSON is logged and an exception thrown. Throws: <a class="el" href="structripple_1_1test_1_1jtx_1_1parse__error.html" title="Thrown when parse fails.">parse_error</a> </p>
 
-<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00421">421</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8cpp_source.html#l00428">428</a> of file <a class="el" href="Env_8cpp_source.html">Env.cpp</a>.</p>
 
 </div>
 </div>
@@ -2041,7 +2041,7 @@ template&lt;class... FN&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00118">118</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00119">119</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
 
 </div>
 </div>
@@ -2057,7 +2057,7 @@ template&lt;class... FN&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00120">120</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00121">121</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
 
 </div>
 </div>
@@ -2081,7 +2081,7 @@ template&lt;class... FN&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00140">140</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00141">141</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
 
 </div>
 </div>
@@ -2097,7 +2097,7 @@ template&lt;class... FN&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00143">143</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Env_8h_source.html#l00144">144</a> of file <a class="el" href="Env_8h_source.html">Env.h</a>.</p>
 
 </div>
 </div>

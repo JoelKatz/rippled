@@ -85,7 +85,7 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a4e4d4928a786bd8db98a4cdf0e00e239"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac932b82a5bd5ecfe6dbdcc21abd7f4a0"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1TERSubset.html#ac932b82a5bd5ecfe6dbdcc21abd7f4a0">TERSubset</a> (<a class="el" href="classripple_1_1TERSubset.html">TERSubset</a> &amp;&amp;rhs)=default</td></tr>
 <tr class="separator:ac932b82a5bd5ecfe6dbdcc21abd7f4a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa94e1277fddef4c9f4534548848f153b"><td class="memTemplParams" colspan="2">template&lt;typename T , typename  = std::enable_if_t&lt;Trait&lt;T&gt;::value&gt;&gt; </td></tr>
+<tr class="memitem:aa94e1277fddef4c9f4534548848f153b"><td class="memTemplParams" colspan="2">template&lt;typename T , typename  = std::enable_if_t&lt;            Trait&lt;std::remove_cv_t&lt;std::remove_reference_t&lt;T&gt;&gt;&gt;::value&gt;&gt; </td></tr>
 <tr class="memitem:aa94e1277fddef4c9f4534548848f153b"><td class="memTemplItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classripple_1_1TERSubset.html#aa94e1277fddef4c9f4534548848f153b">TERSubset</a> (T rhs)</td></tr>
 <tr class="separator:aa94e1277fddef4c9f4534548848f153b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5f27696970c42db42f652116534222bf"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="classripple_1_1TERSubset.html">TERSubset</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classripple_1_1TERSubset.html#a5f27696970c42db42f652116534222bf">operator=</a> (<a class="el" href="classripple_1_1TERSubset.html">TERSubset</a> const &amp;rhs)=default</td></tr>
@@ -127,7 +127,7 @@ Friends</h2></td></tr>
 class ripple::TERSubset&lt; Trait &gt;</h3>
 
 
-<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00326">326</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00327">327</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a411b879704ce6c0d44d9596f7d5834cb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a411b879704ce6c0d44d9596f7d5834cb">&#9670;&nbsp;</a></span>TERSubset() <span class="overload">[1/5]</span></h2>
@@ -154,7 +154,7 @@ template&lt;template&lt; typename &gt; class Trait&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00332">332</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00333">333</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
 
 </div>
 </div>
@@ -240,7 +240,7 @@ template&lt;template&lt; typename &gt; class Trait&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00339">339</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00340">340</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
 
 </div>
 </div>
@@ -252,7 +252,7 @@ template&lt;template&lt; typename &gt; class Trait&gt; </div>
 <div class="memtemplate">
 template&lt;template&lt; typename &gt; class Trait&gt; </div>
 <div class="memtemplate">
-template&lt;typename T , typename  = std::enable_if_t&lt;Trait&lt;T&gt;::value&gt;&gt; </div>
+template&lt;typename T , typename  = std::enable_if_t&lt;            Trait&lt;std::remove_cv_t&lt;std::remove_reference_t&lt;T&gt;&gt;&gt;::value&gt;&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -272,7 +272,7 @@ template&lt;typename T , typename  = std::enable_if_t&lt;Trait&lt;T&gt;::value&g
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00352">352</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00356">356</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
 
 </div>
 </div>
@@ -303,7 +303,7 @@ template&lt;template&lt; typename &gt; class Trait&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00345">345</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00346">346</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
 
 </div>
 </div>
@@ -392,7 +392,7 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00365">365</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00369">369</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
 
 </div>
 </div>
@@ -421,7 +421,7 @@ template&lt;template&lt; typename &gt; class Trait&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00372">372</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00376">376</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
 
 </div>
 </div>
@@ -442,7 +442,7 @@ template&lt;template&lt; typename &gt; class Trait&gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00379">379</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00383">383</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
 
 </div>
 </div>
@@ -483,7 +483,7 @@ template&lt;template&lt; typename &gt; class Trait&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00386">386</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00390">390</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
 
 </div>
 </div>
@@ -513,7 +513,7 @@ template&lt;template&lt; typename &gt; class Trait&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00408">408</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00412">412</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
 
 </div>
 </div>
@@ -540,7 +540,7 @@ template&lt;template&lt; typename &gt; class Trait&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00328">328</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="TER_8h_source.html#l00329">329</a> of file <a class="el" href="TER_8h_source.html">TER.h</a>.</p>
 
 </div>
 </div>
