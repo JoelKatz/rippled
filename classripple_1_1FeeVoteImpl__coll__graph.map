@@ -1,6 +1,13 @@
 <map id="ripple::FeeVoteImpl" name="ripple::FeeVoteImpl">
-<area shape="rect" id="node1" title=" " alt="" coords="37,184,183,211"/>
-<area shape="rect" id="node2" href="$classripple_1_1FeeVote.html" title="Manager to process fee votes." alt="" coords="5,95,124,121"/>
-<area shape="rect" id="node3" href="$classbeast_1_1Journal.html" title="A generic endpoint for log messages." alt="" coords="148,95,259,121"/>
-<area shape="rect" id="node4" href="$classbeast_1_1Journal_1_1Sink.html" title="Abstraction for the underlying message destination." alt="" coords="130,5,277,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="865,127,1013,153"/>
+<area shape="rect" id="node2" href="$classripple_1_1FeeVote.html" title="Manager to process fee votes." alt="" coords="637,78,756,103"/>
+<area shape="rect" id="node3" href="$structripple_1_1FeeSetup.html" title="Fee schedule for startup / standalone, and to vote for." alt="" coords="633,127,760,153"/>
+<area shape="rect" id="node4" href="$classripple_1_1XRPAmount.html" title=" " alt="" coords="329,127,471,153"/>
+<area shape="rect" id="node5" title=" " alt="" coords="35,5,201,45"/>
+<area shape="rect" id="node6" title=" " alt="" coords="5,70,231,95"/>
+<area shape="rect" id="node7" title=" " alt="" coords="13,120,223,160"/>
+<area shape="rect" id="node8" title=" " alt="" coords="11,184,225,224"/>
+<area shape="rect" id="node9" href="/__w/rippled/rippled/build/docs/cppreference-doxygen-web.tag.xml$cpp/types/integer.html" title=" " alt="" coords="71,249,165,274"/>
+<area shape="rect" id="node10" href="$classbeast_1_1Journal.html" title="A generic endpoint for log messages." alt="" coords="641,177,752,202"/>
+<area shape="rect" id="node11" href="$classbeast_1_1Journal_1_1Sink.html" title="Abstraction for the underlying message destination." alt="" coords="327,177,473,202"/>
 </map>

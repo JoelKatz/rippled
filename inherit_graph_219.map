@@ -1,3 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$structripple_1_1detail_1_1basic__sha512__half__hasher.html" title="Returns the SHA512&#45;Half digest of a message." alt="" coords="5,5,176,61"/>
+<area shape="rect" id="node1" href="$classripple_1_1CountedObject.html" title=" " alt="" coords="5,5,168,45"/>
+<area shape="rect" id="node2" href="$classripple_1_1HashRouter_1_1Entry.html" title="An entry in the routing table." alt="" coords="216,5,359,45"/>
 </map>

@@ -1,0 +1,8 @@
+<map id="ripple::test::jtx::AMMTestBase" name="ripple::test::jtx::AMMTestBase">
+<area shape="rect" id="node1" title=" " alt="" coords="129,79,254,119"/>
+<area shape="rect" id="node3" href="$classripple_1_1test_1_1AMMInfo__test.html" title=" " alt="" coords="5,174,196,199"/>
+<area shape="rect" id="node4" href="$classripple_1_1test_1_1jtx_1_1AMMTest.html" title=" " alt="" coords="221,167,346,207"/>
+<area shape="rect" id="node2" href="$classbeast_1_1unit__test_1_1suite.html" title="A testsuite class." alt="" coords="110,5,273,31"/>
+<area shape="rect" id="node5" href="$structripple_1_1test_1_1AMMExtended__test.html" title="Tests of AMM that use offers too." alt="" coords="61,255,287,280"/>
+<area shape="rect" id="node6" href="$structripple_1_1test_1_1AMM__test.html" title="Basic tests of AMM that do not use offers." alt="" coords="311,255,477,280"/>
+</map>
